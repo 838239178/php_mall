@@ -1,0 +1,35 @@
+framework:
+  workflows:
+    orders_finishing:
+      type: 'state_machine' # or 'state_machine'
+      audit_trail:
+        enabled: true
+      marking_store:
+        type: 'method'
+        property: 'ordersStatus'
+      supports:
+        - App\Entity\Orders
+      initial_marking: wait_pay
+      places:
+        - wait_pay
+        - wait_draw_back
+        - wait_express
+        - wait_recieve
+        - finished
+        - canceled
+      transitions:
+        pay:
+          from: wait_pay
+          to: wait_express
+        express:
+          from: wait_express
+          to: wait_recieve
+        req_drawback:
+          from: [ wait_pay, wait_express, wait_recieve ]
+          to: wait_draw_back
+        cancel:
+          from: [wait_pay, wait_draw_back]
+          to: canceled
+        finish:
+          from: wait_recieve
+          to: finished
