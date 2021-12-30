@@ -11,6 +11,7 @@ use App\Repository\CategoryRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
@@ -19,6 +20,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 
 class ProductCrudController extends AbstractCrudController
 {
@@ -40,6 +44,19 @@ class ProductCrudController extends AbstractCrudController
     {
         return parent::configureActions($actions)
             ->add(Crud::PAGE_INDEX, Action::DETAIL);
+    }
+
+    public function configureFilters(Filters $filters): Filters
+    {
+        return $filters
+                ->add(DateTimeFilter::new("createTime", "创建时间"))
+                ->add(EntityFilter::new("shop", "商店"))
+                ->add(EntityFilter::new("category", "分类"))
+                ->add(ChoiceFilter::new("productStatus", "状态")->setChoices([
+                    "未发布"=>"undeployed",
+                    "已发布"=>"deployed",
+                    "已失效"=>"invalid"
+                ]));
     }
 
     public static function getEntityFqcn(): string

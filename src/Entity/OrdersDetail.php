@@ -212,5 +212,9 @@ class OrdersDetail
         $this->detailId = $detailId;
     }
 
+    public function __toString(): string
+    {
+        return "[".$this->good->getProduct()->getProductName()."(".$this->goodDesc.")".":".$this->productPrice."元"."x".$this->productSize."]";
+    }
 
 }

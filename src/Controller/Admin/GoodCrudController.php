@@ -8,6 +8,7 @@ use App\Form\GoodPropKeyType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -17,6 +18,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use Symfony\Component\HttpFoundation\Response;
 
 class GoodCrudController extends AbstractCrudController
@@ -24,6 +27,13 @@ class GoodCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string
     {
         return Good::class;
+    }
+
+    public function configureFilters(Filters $filters): Filters
+    {
+        return $filters
+            ->add(EntityFilter::new('product', '商品'))
+            ->add('stock');
     }
 
     public function configureActions(Actions $actions): Actions
@@ -50,7 +60,8 @@ class GoodCrudController extends AbstractCrudController
                 ->setFormTypeOption("scale", 2),
             IntegerField::new('stock', '库存数量'),
             CollectionField::new('propKeys', "货品属性")
-                ->onlyWhenUpdating()
+                ->hideWhenCreating()
+                ->hideOnIndex()
                 ->setFormTypeOptions([
                     'entry_type' => GoodPropKeyType::class,
                     'allow_add' => true,

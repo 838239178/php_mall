@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use App\Consts\Role;
 use Doctrine\ORM\Mapping as ORM;
@@ -19,7 +20,11 @@ use Symfony\Component\Validator\Constraints\NotBlank;
  */
 #[ApiResource(
     collectionOperations: [],
-    itemOperations: ['get', 'patch'],
+    itemOperations: [
+        'get'=>['security' =>"is_granted('".Role::ADMIN."') or object.getUserId() == user.getUserId()"],
+        'patch'=>['security_post_denormalize' =>'object.getUserId() == user.getUserId() and previous_object.getUserId() == user.getUserId()']
+    ],
+    attributes: ['security'=>"is_granted('".Role::USER."')"],
     denormalizationContext: ['groups'=>['user:patch']],
     normalizationContext: ['groups'=>['user:read']]
 )]
@@ -86,6 +91,14 @@ class UserInfo implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read','user:patch'])]
     #[NotBlank]
     private $nickName;
+    /**
+     * @var ?Shop
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\Shop", mappedBy="user")
+     */
+    #[Groups(['user:read'])]
+    #[ApiProperty(readableLink: false)]
+    private ?Shop $shop = null;
 
 
     /**
@@ -188,5 +201,21 @@ class UserInfo implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials()
     {
+    }
+
+    /**
+     * @return ?Shop
+     */
+    public function getShop(): ?Shop
+    {
+        return $this->shop;
+    }
+
+    /**
+     * @param ?Shop $shop
+     */
+    public function setShop(?Shop $shop): void
+    {
+        $this->shop = $shop;
     }
 }

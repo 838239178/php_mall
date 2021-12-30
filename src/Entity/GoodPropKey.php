@@ -61,7 +61,7 @@ class GoodPropKey
      */
     #[Groups(['read','good:read'])]
     #[ApiProperty(readableLink: true)]
-    private PropKey $key;
+    private ?PropKey $key;
 
     public function getId(): ?string
     {
@@ -104,5 +104,9 @@ class GoodPropKey
         return $this;
     }
 
+    public function __toString(): string
+    {
+        return "[".$this->key->getKeyName().":".$this->value."]";
+    }
 
 }

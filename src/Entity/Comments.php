@@ -52,6 +52,7 @@ class Comments
      * @var Comments|null
      *
      * @ORM\ManyToOne(targetEntity="App\Entity\Comments", inversedBy="children")
+     * @ORM\JoinColumn(referencedColumnName="comments_id", name="reply_cid")
      */
     #[Groups(['read','write'])]
     #[ApiProperty(readableLink: false, writableLink: false)]

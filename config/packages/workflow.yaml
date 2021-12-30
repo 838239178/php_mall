@@ -28,7 +28,10 @@ framework:
           from: [ wait_pay, wait_express, wait_recieve ]
           to: wait_draw_back
         cancel:
-          from: [wait_pay, wait_draw_back]
+          from: wait_pay
+          to: canceled
+        drawback:
+          from: wait_draw_back
           to: canceled
         finish:
           from: wait_recieve

@@ -166,5 +166,9 @@ class Category
         $this->children = $children;
     }
 
+    public function __toString(): string
+    {
+        return $this->getCategoryName();
+    }
 
 }

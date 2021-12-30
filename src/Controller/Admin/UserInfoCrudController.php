@@ -7,6 +7,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
@@ -33,11 +34,12 @@ class UserInfoCrudController extends AbstractCrudController
             TextField::new('nickName'),
             TextField::new("salt")->onlyOnDetail(),
             TextField::new('email')->hideOnForm(),
-            CollectionField::new('roles')
+            ArrayField::new('roles')
                 ->setFormTypeOptions([
                     'allow_add' => true,
                     'allow_delete' => true,
                 ])
         ];
+
     }
 }

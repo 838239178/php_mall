@@ -394,4 +394,11 @@ class Product
     {
         $this->goods = $goods;
     }
+
+    public function __toString(): string
+    {
+        return $this->productName;
+    }
+
+
 }

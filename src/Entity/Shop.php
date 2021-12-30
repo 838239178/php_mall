@@ -69,7 +69,7 @@ class Shop
     /**
      * @var UserInfo
      *
-     * @ORM\ManyToOne(targetEntity="UserInfo")
+     * @ORM\OneToOne(targetEntity="UserInfo", inversedBy="shop")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="user_id", referencedColumnName="user_id")
      * })
@@ -215,5 +215,9 @@ class Shop
         $this->expressName = $expressName;
     }
 
+    public function __toString(): string
+    {
+        return $this->shopName;
+    }
 
 }

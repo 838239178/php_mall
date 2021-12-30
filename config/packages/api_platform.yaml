@@ -11,3 +11,5 @@ api_platform:
         type: header
   exception_to_status:
     App\Exception\InvalidPersistException: 400
+    App\Exception\InvalidQueryException: 404
+    App\Exception\PermissionDenyException: 403

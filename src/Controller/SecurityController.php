@@ -10,9 +10,15 @@ use App\DTO\RegisterDTO;
 use App\Entity\UserInfo;
 use App\Util\HttpUtils;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
@@ -22,14 +28,16 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class SecurityController extends AbstractController
 {
     private EntityManagerInterface $em;
+    private MailerInterface $mailer;
 
     /**
      * SecurityController constructor.
      * @param EntityManagerInterface $em
      */
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(EntityManagerInterface $em, MailerInterface $mailer)
     {
         $this->em = $em;
+        $this->mailer = $mailer;
     }
 
 
@@ -78,20 +86,32 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    public function loginApi(#[CurrentUser] UserInfo $userInfo): Response
-    {
-        if ($userInfo == null) {
-            return $this->json("未检测到登录信息", Response::HTTP_UNAUTHORIZED);
+    #[Route(path: "/api/emailCode/{email}", name: "api_sendEmailCode", methods: ['GET'])]
+    public function getEmailCode(string $email, LoggerInterface $logger): Response {
+        $code = uuid_create(UUID_TYPE_TIME) % 10000;
+        //save code
+        $emailSubject = (new TemplatedEmail())
+            ->to($email)
+            ->from(new Address('838239178@qq.com', 'PHP MALL技术团队'))
+            ->subject("[PHP MALL] 您正在进行注册活动，请验证你的邮箱")
+            // path of the Twig template to render
+            ->htmlTemplate('emails/register.html.twig')
+            // pass variables (name => value) to the template
+            ->context([
+                'code' => $code,
+            ]);
+
+        try {
+            $this->mailer->send($emailSubject);
+            return $this->json([
+                "message"=>"发送成功"
+            ]);
+        } catch (TransportExceptionInterface $e) {
+            $logger->error($e->getTraceAsString());
+            return $this->json([
+                "message"=>"发送失败,稍后再试"
+            ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
-        return $this->json([
-            'data' => [
-                'userId' => $userInfo->getUserId(),
-                'username' => $userInfo->getUsername(),
-                'nickName' => $userInfo->getNickName(),
-                'avatar' => $userInfo->getAvatar()
-            ],
-            'token' => 123123,
-        ]);
     }
 
     #[Route(path: "/api/register", name: "api_register", methods: ['POST'])]

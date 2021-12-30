@@ -23,6 +23,9 @@ services:
     App\OpenApi\JwtDecorator:
         decorates: 'api_platform.openapi.factory'
         arguments: [ '@.inner' ]
+    App\Persister\OrderPersister:
+        arguments:
+            $calculator: 'App/Strategy/Impl/NoCouponStrategy'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

@@ -35,7 +35,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
     itemOperations: [
         'get',
     ],
-    attributes: ['security'=>"is_granted('".Role::USER."')"],
+    attributes: ['security'=>"is_granted('".Role::USER."') and IS_AUTHENTICATED_FULLY()"],
     denormalizationContext: ['groups'=>['order:write']],
     normalizationContext: ['groups'=>['order:read']]
 )]
@@ -61,12 +61,13 @@ class Orders
     private $ordersId;
 
     /**
-     * @var int|null
+     * @var Shop|null
      *
-     * @ORM\Column(name="shop_id", type="bigint", nullable=true, options={"comment"="卖家商店id"})
+     * @ORM\ManyToOne(targetEntity="App\Entity\Shop")
+     * @ORM\JoinColumn(referencedColumnName="shop_id", name="shop_id")
      */
     #[Groups('order:read')]
-    private $shopId;
+    private $shop;
 
     /**
      * @var string|null
@@ -212,14 +213,14 @@ class Orders
         return $this->ordersId;
     }
 
-    public function getShopId(): ?string
+    public function getShop(): ?Shop
     {
-        return $this->shopId;
+        return $this->shop;
     }
 
-    public function setShopId(?string $shopId): self
+    public function setShop(?Shop $shopId): self
     {
-        $this->shopId = $shopId;
+        $this->shop = $shopId;
 
         return $this;
     }

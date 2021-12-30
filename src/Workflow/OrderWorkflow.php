@@ -21,6 +21,7 @@ class OrderWorkflow
     const EXPRESS = "express";
     const PAY = "pay";
     const FINISH = "finish";
+    const DRAWBACK = "drawback";
 
 
     private WorkflowInterface $workflow;
@@ -37,7 +38,7 @@ class OrderWorkflow
     }
 
     public function canExpress(Orders $orders): bool {
-        return $this->workflow->can($orders, self::EXPRESS);
+        return $orders->getExpressId() != null && $this->workflow->can($orders, self::EXPRESS);
     }
 
     public function canCancel(Orders $orders):bool {
@@ -50,6 +51,10 @@ class OrderWorkflow
 
     public function canFinish(Orders $orders): bool {
         return $this->workflow->can($orders, self::FINISH);
+    }
+
+    public function canDrawBack(Orders $orders): bool {
+        return $this->workflow->can($orders, self::DRAWBACK);
     }
 
     public function express(Orders $orders) {
