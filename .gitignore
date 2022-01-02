@@ -5,6 +5,7 @@
 /.env.*.local
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
+/public/build/
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
@@ -20,3 +21,4 @@
 ###< phpunit/phpunit ###
 /.env
 /public/uploads
+/node_modules/
