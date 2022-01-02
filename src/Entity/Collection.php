@@ -27,9 +27,20 @@ use Symfony\Component\Validator\Constraints\NotBlank;
  * @ORM\Entity
  */
 #[ApiResource(
-    collectionOperations: ['get', 'post'],
-    itemOperations: ['get', 'delete'],
-    attributes: ['security'=>"is_granted('".Role::USER."')"],
+    collectionOperations: [
+        'get',
+        'post'
+    ],
+    itemOperations: [
+        'get',
+        'delete'=>[
+            'security_post_denormalize' =>'previous_object.getUserId() == user.getUserId()'
+        ]
+    ],
+    attributes: [
+        'security'=>"is_granted('".Role::USER."')",
+        "pagination_items_per_page" => 20
+    ],
     denormalizationContext: ['groups'=>['write']],
     normalizationContext: ['groups'=>['read']]
 )]

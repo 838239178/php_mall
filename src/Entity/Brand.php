@@ -31,7 +31,7 @@ class Brand
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['read'])]
+    #[Groups(['read','product:simple'])]
     private $brandId;
 
     /**
@@ -39,7 +39,7 @@ class Brand
      *
      * @ORM\Column(name="brand_name", type="string", length=32, nullable=true, options={"comment"="品牌英文名称"})
      */
-    #[Groups(['read'])]
+    #[Groups(['read','product:simple'])]
     private $brandName;
 
     /**
@@ -55,7 +55,7 @@ class Brand
      *
      * @ORM\Column(name="logo", type="string", length=255, nullable=true, options={"comment"="logo url"})
      */
-    #[Groups(['read'])]
+    #[Groups(['read','product:simple'])]
     private $logo;
 
     /**
@@ -122,5 +122,9 @@ class Brand
         return $this;
     }
 
+    public function __toString(): string
+    {
+        return $this->getBrandName();
+    }
 
 }

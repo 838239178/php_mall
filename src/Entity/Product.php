@@ -8,7 +8,9 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\RangeFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Core\Serializer\Filter\GroupFilter;
 use App\Filter\ForceQueryFilter;
+use App\Filter\SingleGroupFilter;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -22,6 +24,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(
     collectionOperations: ['get'],
     itemOperations: ['get'],
+    attributes: [
+        "pagination_items_per_page" => 20
+    ],
     normalizationContext: ['groups'=>['prod:read']]
 )]
 #[ApiFilter(
@@ -30,10 +35,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
 )]
 #[ApiFilter(
     SearchFilter::class,
-    properties: ['productName'=>'partial', 'productTags'=>'word_start']
+    properties: ['productName'=>'partial', 'productTags'=>'word_start', 'category'=>'exact']
 )]
 #[ApiFilter(RangeFilter::class, properties: ['lowestPrice'])]
 #[ApiFilter(ForceQueryFilter::class, arguments: ['forceWhere' => ['productStatus'=>'deployed']])]
+#[ApiFilter(SingleGroupFilter::class, arguments: [
+    'whitelist' => ['product:simple']]
+)]
 class Product
 {
     /**
@@ -44,7 +52,7 @@ class Product
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','product:simple'])]
     private $productId;
 
     /**
@@ -52,7 +60,7 @@ class Product
      *
      * @ORM\Column(name="product_name", type="string", length=40, nullable=true, options={"comment"="商品名"})
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','product:simple'])]
     private $productName;
 
     /**
@@ -60,7 +68,7 @@ class Product
      *
      * @ORM\Column(name="product_desc", type="string", length=100, nullable=true, options={"comment"="商品描述"})
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','product:simple'])]
     private $productDesc;
 
     /**
@@ -75,7 +83,7 @@ class Product
      *
      * @ORM\Column(name="preview_img", type="string", length=150, nullable=true, options={"comment"="预览图地址"})
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','product:simple'])]
     private $previewImg;
 
     /**
@@ -98,7 +106,7 @@ class Product
      *
      * @ORM\Column(name="deploy_time", type="datetime", nullable=true, options={"comment"="上架时间"})
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','product:simple'])]
     private $deployTime;
 
     /**
@@ -106,6 +114,7 @@ class Product
      *
      * @ORM\Column(name="intro_page", type="string", length=255, nullable=true)
      */
+    #[Groups(['prod:read'])]
     private $introPage;
 
     /**
@@ -113,7 +122,7 @@ class Product
      *
      * @ORM\Column(name="lowest_price", type="decimal", precision=10, scale=2, nullable=true)
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','product:simple'])]
     private $lowestPrice;
 
     /**
@@ -121,18 +130,19 @@ class Product
      *
      * @ORM\Column(name="product_tags", type="string", length=150, nullable=false, options={"comment"="逗号分隔"})
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','product:simple'])]
     private $productTags;
 
     /**
-     * @var \Brand
+     * @var ?Brand
      *
      * @ORM\ManyToOne(targetEntity="Brand")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="brand_id", referencedColumnName="brand_id")
      * })
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','product:simple'])]
+    #[ApiProperty(readableLink: true)]
     private $brand;
 
     /**
@@ -143,18 +153,18 @@ class Product
      *   @ORM\JoinColumn(name="category_id", referencedColumnName="category_id")
      * })
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','product:simple'])]
     private $category;
 
     /**
-     * @var \Shop
+     * @var Shop
      *
      * @ORM\ManyToOne(targetEntity="Shop")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="shop_id", referencedColumnName="shop_id")
      * })
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','product:simple'])]
     #[ApiProperty(readableLink: true)]
     private $shop;
 

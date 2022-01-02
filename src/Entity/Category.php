@@ -32,7 +32,7 @@ class Category
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['read'])]
+    #[Groups(['read','product:simple'])]
     private $categoryId;
 
     /**
@@ -40,7 +40,7 @@ class Category
      *
      * @ORM\Column(name="category_name", type="string", length=32, nullable=true, options={"comment"="分类名称"})
      */
-    #[Groups(['read'])]
+    #[Groups(['read','product:simple'])]
     private $categoryName;
 
     /**

@@ -6,6 +6,7 @@ namespace App\Controller;
 
 namespace App\Controller;
 
+use App\Consts\Role;
 use App\DTO\RegisterDTO;
 use App\Entity\UserInfo;
 use App\Util\HttpUtils;
@@ -15,12 +16,14 @@ use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -29,15 +32,17 @@ class SecurityController extends AbstractController
 {
     private EntityManagerInterface $em;
     private MailerInterface $mailer;
+    private UserPasswordHasherInterface $passwordHasher;
 
     /**
      * SecurityController constructor.
      * @param EntityManagerInterface $em
      */
-    public function __construct(EntityManagerInterface $em, MailerInterface $mailer)
+    public function __construct(EntityManagerInterface $em, MailerInterface $mailer, UserPasswordHasherInterface $passwordHasher)
     {
         $this->em = $em;
         $this->mailer = $mailer;
+        $this->passwordHasher = $passwordHasher;
     }
 
 
@@ -86,9 +91,38 @@ class SecurityController extends AbstractController
         ]);
     }
 
+    function getRandStr(int $length): string
+    {
+        //字符组合
+        $str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $len = strlen($str) - 1;
+        $randstr = '';
+        for ($i = 0; $i < $length; $i++) {
+            $num = mt_rand(0, $len);
+            $randstr .= $str[$num];
+        }
+        return $randstr;
+    }
+
+    #[Route(path: "/api/password", methods: ['PATCH'])]
+    public function changePwd(Request $request, #[CurrentUser] UserInfo $user): Response
+    {
+        $oldPwd = $request->get("oldPwd");
+        $newPwd = $request->get("newPwd");
+        if (isset($oldPwd) and isset($newPwd)) {
+            if ($this->passwordHasher->isPasswordValid($user, $oldPwd)) {
+                $this->passwordHasher->hashPassword($user, $newPwd);
+                return HttpUtils::wrapperSuccess("修改成功");
+            }
+            return HttpUtils::wrapperFail("密码错误");
+        }
+        return HttpUtils::wrapperFail("参数不能为空");
+    }
+
     #[Route(path: "/api/emailCode/{email}", name: "api_sendEmailCode", methods: ['GET'])]
-    public function getEmailCode(string $email, LoggerInterface $logger): Response {
-        $code = uuid_create(UUID_TYPE_TIME) % 10000;
+    public function getEmailCode(string $email, LoggerInterface $logger, Session $session): Response
+    {
+        $code = $this->getRandStr(5);
         //save code
         $emailSubject = (new TemplatedEmail())
             ->to($email)
@@ -100,22 +134,22 @@ class SecurityController extends AbstractController
             ->context([
                 'code' => $code,
             ]);
-
         try {
             $this->mailer->send($emailSubject);
+            $session->set($email, $code);
             return $this->json([
-                "message"=>"发送成功"
+                "message" => "发送成功"
             ]);
         } catch (TransportExceptionInterface $e) {
             $logger->error($e->getTraceAsString());
             return $this->json([
-                "message"=>"发送失败,稍后再试"
+                "message" => "发送失败,稍后再试"
             ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
     }
 
     #[Route(path: "/api/register", name: "api_register", methods: ['POST'])]
-    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): Response
+    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator, Session $session): Response
     {
         $registerInfo = HttpUtils::wrapperRequest($request, RegisterDTO::class);
         if ($registerInfo instanceof RegisterDTO) {
@@ -124,24 +158,32 @@ class SecurityController extends AbstractController
             if (count($errors) > 0) {
                 return HttpUtils::wrapperErrors($errors);
             }
+            $code = $session->get($registerInfo->getEmail());
+            if ($code != $registerInfo->getEmailCode()) {
+                return HttpUtils::wrapperFail("验证码有误");
+            }
 
             $userInfo = new UserInfo();
             $userInfo->setSalt(uuid_create());
             $res = $passwordHasher->hashPassword($userInfo, $registerInfo->getPassword());
             $userInfo->setPassword($res);
+            $userInfo->setRoles([Role::USER]);
             $userInfo->setUsername($registerInfo->getUsername());
             $userInfo->setEmail($registerInfo->getEmail());
+            $userInfo->setNickName(uniqid(prefix: "用户_"));
             //persist
             $this->em->persist($userInfo);
             $this->em->flush();
+            //clear code
+            $session->remove($registerInfo->getEmail());
             return $this->json([
-                'success'=>true,
-                'message'=>'注册成功'
+                'success' => true,
+                'message' => '注册成功'
             ]);
         }
         return $this->json([
-            'success'=>false,
-            'message'=>'请求异常'
+            'success' => false,
+            'message' => '请求异常'
         ], Response::HTTP_BAD_REQUEST);
     }
 

@@ -5,6 +5,7 @@ namespace App\EventSubscriber;
 use App\Entity\Product;
 use App\Entity\ProductPropKey;
 use App\Entity\UserInfo;
+use DateTime;
 use EasyCorp\Bundle\EasyAdminBundle\Event\AbstractLifecycleEvent;
 use JetBrains\PhpStorm\Pure;
 use KaiGrassnick\SnowflakeBundle\Generator\SnowflakeGenerator;
@@ -25,10 +26,13 @@ class ProductPersistSubscriber implements EventSubscriberInterface
     }
 
 
-    public function setPropKeyRelation(AbstractLifecycleEvent $event)
+    public function beforeModifyProduct(AbstractLifecycleEvent $event)
     {
         $product = $event->getEntityInstance();
         if ($product instanceof Product) {
+            if ($product->getProductStatus() == "deployed") {
+                $product->setDeployTime(new DateTime());
+            }
             $this->logger->info("init product prop keys and shop");
             /** @var UserInfo $user */
             $user = $this->security->getUser();
@@ -41,7 +45,7 @@ class ProductPersistSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            AbstractLifecycleEvent::class => 'setPropKeyRelation',
+            AbstractLifecycleEvent::class => 'beforeModifyProduct',
         ];
     }
 }

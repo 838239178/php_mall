@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route(path: "/api/good", name: "api_good")]
+#[Route(path: "/api/goods", name: "api_good")]
 class GoodApiController extends AbstractController
 {
     private GoodRepository $goodRepository;

@@ -45,11 +45,11 @@ class BrandCrudController extends AbstractCrudController
     {
         return [
             IdField::new('brandId')->onlyOnIndex(),
-            TextField::new('brandName','品牌名称'),
-            TextField::new('brandDesc','品牌描述'),
             ImageField::new('logo','品牌图标')
                 ->setBasePath('uploads/images')
                 ->setUploadDir('public/uploads/images'),
+            TextField::new('brandName','品牌名称'),
+            TextField::new('brandDesc','品牌描述'),
             AssociationField::new('category','分类')
                 ->setFormTypeOption('choice_label', 'categoryName')
                 ->setFormTypeOption('class', Category::class),

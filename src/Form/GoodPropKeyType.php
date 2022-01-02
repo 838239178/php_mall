@@ -44,7 +44,6 @@ class GoodPropKeyType extends AbstractType
         if ($product == null) {
             return ['请先选择商品'=>null];
         }
-        /** @var Collection<Propkey> $keys */
         $keys = $product->getPropKeys()->map(fn(ProductPropKey $item)=> $item->getPropKey());
         $choices = [];
         foreach ($keys as $item) {

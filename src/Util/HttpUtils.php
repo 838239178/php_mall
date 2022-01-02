@@ -61,7 +61,7 @@ class HttpUtils
 
                         if ($attr->type == WrapperOption::ARRAY) {
                             if ($attr->elementType == null) {
-                                throw new InvalidArgumentException($propName . "is array but didn't provide element type");
+                                throw new InvalidArgumentException($propName . " is array but didn't provide element's type");
                             }
                             $propValue = self::wrapperArray($propValue, $attr->elementType);
                         } else if ($attr->type != WrapperOption::DEFAULT) {

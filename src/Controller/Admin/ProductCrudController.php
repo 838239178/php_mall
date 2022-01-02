@@ -19,6 +19,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
@@ -83,12 +85,18 @@ class ProductCrudController extends AbstractCrudController
             AssociationField::new("category", "分类")
                 ->setFormTypeOption('choice_label', 'categoryName')
                 ->setFormTypeOption('class', Category::class),
+            NumberField::new("lowestPrice", "最低价")
+                ->hideOnForm()
+                ->formatValue(fn($v)=> $v." 元")
+                ->setFormTypeOption("scale", 2),
             CollectionField::new('propKeys')
                 ->hideOnIndex()
                 ->setFormTypeOption('by_reference',false)
                 ->setFormTypeOption('entry_type', ProductPropKeyType::class),
             DateTimeField::new('createTime')->onlyOnIndex(),
             DateTimeField::new("deployTime")->onlyOnIndex(),
+            TextEditorField::new("introPage", "介绍")
+                ->hideOnIndex()
         ];
     }
 }

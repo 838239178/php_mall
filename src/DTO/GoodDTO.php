@@ -11,8 +11,11 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 class GoodDTO
 {
     #[NotBlank]
+    #[WrapperOption(type: WrapperOption::DEFAULT)]
     private ?int $propKeyId;
+
     #[NotBlank]
+    #[WrapperOption(type: WrapperOption::DEFAULT)]
     private ?string $value;
 
     public function getPropKeyId(): ?int

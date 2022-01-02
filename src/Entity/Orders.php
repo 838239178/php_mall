@@ -35,7 +35,10 @@ use Symfony\Component\Validator\Constraints\NotBlank;
     itemOperations: [
         'get',
     ],
-    attributes: ['security'=>"is_granted('".Role::USER."') and IS_AUTHENTICATED_FULLY()"],
+    attributes: [
+        'security'=>"is_granted('".Role::USER."')",
+        "pagination_items_per_page" => 10
+    ],
     denormalizationContext: ['groups'=>['order:write']],
     normalizationContext: ['groups'=>['order:read']]
 )]

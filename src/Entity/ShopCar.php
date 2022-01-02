@@ -3,8 +3,10 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
+use App\Consts\Role;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -20,9 +22,21 @@ use Symfony\Component\Validator\Constraints\NotNull;
  */
 #[ApiResource(
     collectionOperations: ['get', 'post'],
-    itemOperations: ['get', 'delete'],
-    denormalizationContext: ['groups'=>['car:write']],
-    normalizationContext: ['groups'=>['car:read']]
+    itemOperations: [
+        'get',
+        'delete'=>[
+            'security_post_denormalize' =>'previous_object.getUserId() == user.getUserId()'
+        ],
+        'patch'=>[
+            'denormalizationContext'=>['groups'=>['car:update']],
+            'security_post_denormalize' =>'previous_object.getUserId() == user.getUserId()'
+        ]
+    ],
+    attributes: [
+        "security"=>"is_grant('".Role::USER.")",
+        "pagination_items_per_page" => 10
+    ],
+    denormalizationContext: ['groups'=>['car:write']], normalizationContext: ['groups'=>['car:read']]
 )]
 #[ApiFilter(
     OrderFilter::class,
@@ -38,7 +52,7 @@ class ShopCar
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['card:read'])]
+    #[Groups(['car:read'])]
     private $carId;
 
     /**
@@ -46,7 +60,7 @@ class ShopCar
      *
      * @ORM\Column(name="shop_id", type="bigint", nullable=true, options={"comment"="卖家id"})
      */
-    #[Groups(['card:read'])]
+    #[Groups(['car:read'])]
     private $shopId;
 
     /**
@@ -54,7 +68,7 @@ class ShopCar
      *
      * @ORM\Column(name="create_time", type="datetime", nullable=true, options={"default"="CURRENT_TIMESTAMP","comment"="加入时间"})
      */
-    #[Groups(['card:read'])]
+    #[Groups(['car:read'])]
     private $createTime;
 
     /**
@@ -62,7 +76,7 @@ class ShopCar
      *
      * @ORM\Column(name="product_size", type="integer", nullable=true, options={"comment"="购买数量"})
      */
-    #[Groups(['card:read','card:write'])]
+    #[Groups(['car:read','car:write', 'car:update'])]
     #[GreaterThan(0)]
     private $productSize;
 
@@ -74,8 +88,9 @@ class ShopCar
      *   @ORM\JoinColumn(name="good_id", referencedColumnName="good_id")
      * })
      */
-    #[Groups(['card:read','card:write'])]
+    #[Groups(['car:read','car:write', 'car:update'])]
     #[NotBlank]
+    #[ApiProperty(writableLink: false)]
     private $good;
 
     /**

@@ -68,7 +68,7 @@ class Good
     /**
      * @var Product|null
      *
-     * @ORM\ManyToOne(targetEntity="Product",cascade={"remove"})
+     * @ORM\ManyToOne(targetEntity="Product",cascade={"remove","persist"})
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="product_id", referencedColumnName="product_id")
      * })

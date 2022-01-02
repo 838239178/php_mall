@@ -3,36 +3,18 @@
 namespace App\Serializer\Normalizer;
 
 use App\Entity\ProductPropKey;
-use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use App\Serializer\Normalizer\Base\AbstractAwareNormalizer;
 
-class ProductPropKeyNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface
+class ProductPropKeyNormalizer extends AbstractAwareNormalizer
 {
-    private $normalizer;
-
-    public function __construct(ObjectNormalizer $normalizer)
+    function getSupportedClass(): string
     {
-        $this->normalizer = $normalizer;
+        return ProductPropKey::class;
     }
 
-    public function normalize($object, $format = null, array $context = []): array
+    protected function afterNormalize(array &$data)
     {
-        $data = $this->normalizer->normalize($object, $format, $context);
-
         //数组化可选值
         $data['optionValues'] = preg_split("~,~", $data['optionValues']);
-
-        return $data;
-    }
-
-    public function supportsNormalization($data, $format = null): bool
-    {
-        return $data instanceof \App\Entity\ProductPropKey;
-    }
-
-    public function hasCacheableSupportsMethod(): bool
-    {
-        return true;
     }
 }

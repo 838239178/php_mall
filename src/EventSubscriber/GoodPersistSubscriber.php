@@ -22,7 +22,6 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class GoodPersistSubscriber implements EventSubscriberInterface
 {
     private LoggerInterface $logger;
-    private SnowflakeGenerator $snowflakeGenerator;
 
     /**
      * ProductPersistSubscriber constructor.
@@ -31,7 +30,6 @@ class GoodPersistSubscriber implements EventSubscriberInterface
     #[Pure] public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->snowflakeGenerator = SetterUtil::getSnowFlake();
     }
 
     public static function getSubscribedEvents(): array
@@ -46,6 +44,11 @@ class GoodPersistSubscriber implements EventSubscriberInterface
         $good = $event->getEntityInstance();
         if ($good instanceof Good) {
             $product = $good->getProduct();
+            //update lowest price
+            if ($product->getLowestPrice() == null || $product->getLowestPrice() > $good->getSalePrice()) {
+                $product->setLowestPrice($good->getSalePrice());
+            }
+            //update option values of product's prop keys
             /** @var GoodPropKey $item */
             foreach ($good->getPropKeys()->toArray() as $item) {
                 if ($item->getGood() === null) {

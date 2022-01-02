@@ -16,13 +16,12 @@ use Symfony\Component\Validator\Constraints\NotBlank;
  *
  * @ORM\Table(name="user_info")
  * @ORM\Entity
- * @method string getUserIdentifier()
  */
 #[ApiResource(
     collectionOperations: [],
     itemOperations: [
-        'get'=>['security' =>"is_granted('".Role::ADMIN."') or object.getUserId() == user.getUserId()"],
-        'patch'=>['security_post_denormalize' =>'object.getUserId() == user.getUserId() and previous_object.getUserId() == user.getUserId()']
+        'get'=>['security' =>"is_granted('".Role::USER."') and object.getUserId() == user.getUserId()"],
+        'patch'=>['security_post_denormalize' =>'previous_object.getUserId() == user.getUserId()']
     ],
     attributes: ['security'=>"is_granted('".Role::USER."')"],
     denormalizationContext: ['groups'=>['user:patch']],
@@ -105,6 +104,10 @@ class UserInfo implements UserInterface, PasswordAuthenticatedUserInterface
      * @ORM\Column(type="json", name="roles", length=255, nullable=true)
      */
     private array $roles = [];
+
+    public function getUserIdentifier(): string {
+        return $this->getUserId();
+    }
 
     public function getUserId(): ?string
     {

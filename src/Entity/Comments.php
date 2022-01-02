@@ -7,6 +7,7 @@ use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use App\Consts\Role;
 use App\Extension\NotLimitUser;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\PersistentCollection;
@@ -21,10 +22,23 @@ use Symfony\Component\Validator\Constraints\NotBlank;
  */
 #[NotLimitUser]
 #[ApiResource(
-    collectionOperations: ['get','post'],
-    itemOperations: ['get','delete'],
-    denormalizationContext: ['groups'=>['write']],
-    normalizationContext: ['groups'=>['read']]
+    collectionOperations: [
+        'get',
+        'post'=>[
+            'security'=>"is_grant('".Role::USER."')"
+        ]
+    ],
+    itemOperations: [
+        'get',
+        'delete'=>[
+            'security'=>"is_grant('".Role::USER."')",
+            'security_post_denormalize' =>'previous_object.getUserId() == user.getUserId()'
+        ]
+    ],
+    attributes: [
+        "pagination_items_per_page" => 20
+    ],
+    denormalizationContext: ['groups'=>['write']], normalizationContext: ['groups'=>['read']]
 )]
 #[ApiFilter(
     SearchFilter::class,
