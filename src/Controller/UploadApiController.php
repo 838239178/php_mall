@@ -39,7 +39,11 @@ class UploadApiController extends AbstractController
         $filename = uniqid(prefix: 'Image_').".".$file->getClientOriginalExtension();
         $path = dirname(__DIR__).'/public'.$imagePath;
         $this->logger->warning("uploading path: ".$path);
-        $file->move($path, $filename); // move the file to a path
+        try {
+            $file->move($path, $filename); // move the file to a path
+        } catch (\Exception $e) {
+            return $this->httpUtils->wrapperFail("文件路径$path,异常$e");
+        }
         return $this->httpUtils->wrapperSuccess([
             'url'=> $request->getSchemeAndHttpHost().$imagePath.$filename,
             'name'=> $filename
