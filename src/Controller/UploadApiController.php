@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Consts\Role;
 use App\Util\HttpUtils;
+use Psr\Log\LoggerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\File;
@@ -18,10 +19,12 @@ use Symfony\Component\Routing\Annotation\Route;
 class UploadApiController extends AbstractController
 {
     private HttpUtils $httpUtils;
+    private LoggerInterface $logger;
 
-    public function __construct(HttpUtils $httpUtils)
+    public function __construct(HttpUtils $httpUtils, LoggerInterface $logger)
     {
         $this->httpUtils = $httpUtils;
+        $this->logger = $logger;
     }
 
     #[IsGranted(Role::USER)]
@@ -34,7 +37,8 @@ class UploadApiController extends AbstractController
         }
         // generate a random name for the file but keep the extension
         $filename = uniqid(prefix: 'Image_').".".$file->getClientOriginalExtension();
-        $path = $projectDir.'/public'.$imagePath;
+        $path = dirname(__DIR__).'/public'.$imagePath;
+        $this->logger->warning("uploading path: ".$path);
         $file->move($path, $filename); // move the file to a path
         return $this->httpUtils->wrapperSuccess([
             'url'=> $request->getSchemeAndHttpHost().$imagePath.$filename,

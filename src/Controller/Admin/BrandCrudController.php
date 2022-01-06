@@ -47,7 +47,7 @@ class BrandCrudController extends AbstractCrudController
             IdField::new('brandId')->onlyOnIndex(),
             ImageField::new('logo','品牌图标')
                 ->setBasePath('uploads/images')
-                ->setUploadDir('public/uploads/images'),
+                ->setUploadDir(dirname(__DIR__).'/public/uploads/images'),
             TextField::new('brandName','品牌名称'),
             TextField::new('brandDesc','品牌描述'),
             AssociationField::new('category','分类')

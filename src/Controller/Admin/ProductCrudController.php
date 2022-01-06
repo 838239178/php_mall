@@ -82,7 +82,7 @@ class ProductCrudController extends AbstractCrudController
             TextField::new('productDesc', '商品描述'),
             ImageField::new('previewImg', '商品图片')
                 ->setBasePath('uploads/images')
-                ->setUploadDir('public/uploads/images'),
+                ->setUploadDir(dirname(__DIR__).'/public/uploads/images'),
             ChoiceField::new('productStatus', '发布状态')
                 ->setChoices(fn() => ['不发布' => 'undeployed', '发布' => 'deployed']),
             TextField::new("productTags","商品标签")->onlyOnForms(),
