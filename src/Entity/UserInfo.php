@@ -87,8 +87,8 @@ class UserInfo implements UserInterface, PasswordAuthenticatedUserInterface
      * @ORM\OneToOne(targetEntity="App\Entity\Address")
      * @ORM\JoinColumn(referencedColumnName="address_id", name="def_addr_id")
      */
-    #[Groups(['user:read','user:patch'])]
-    #[ApiProperty(readableLink: true, writableLink: false)]
+    #[Groups(['user:read'])]
+    #[ApiProperty(writable: false, readableLink: true, writableLink: false)]
     private ?Address $defaultAddress;
 
     /**

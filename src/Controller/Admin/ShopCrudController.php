@@ -24,7 +24,7 @@ class ShopCrudController extends AbstractCrudController
             TextField::new("shopName"),
             ImageField::new("shopIcon")
                 ->setBasePath('uploads/images')
-                ->setUploadDir(dirname(__DIR__).'/public/uploads/images'),
+                ->setUploadDir('public/uploads/images'),
             TextField::new("expressName", label: "默认快递名称"),
             NumberField::new("expressPrice", label: "默认快递价格")
                 ->formatValue(fn($v)=> $v." 元")
