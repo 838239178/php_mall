@@ -37,7 +37,7 @@ class UploadApiController extends AbstractController
         }
         // generate a random name for the file but keep the extension
         $filename = uniqid(prefix: 'Image_').".".$file->getClientOriginalExtension();
-        $path = dirname(__DIR__).'/public'.$imagePath;
+        $path = $projectDir.'/public'.$imagePath;
         $this->logger->warning("uploading path: ".$path);
         try {
             $file->move($path, $filename); // move the file to a path
