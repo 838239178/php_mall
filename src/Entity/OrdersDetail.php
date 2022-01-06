@@ -5,6 +5,7 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints\GreaterThan;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -33,13 +34,6 @@ class OrdersDetail
      */
     #[Groups(['order:read'])]
     private $detailId;
-
-    /**
-     * @var int|null
-     *
-     * @ORM\Column(name="product_id", type="bigint", nullable=true, options={"comment"="商品编号"})
-     */
-    private $productId;
 
     /**
      * @var string|null
@@ -71,6 +65,7 @@ class OrdersDetail
      *
      * @ORM\Column(name="product_img", type="string", length=255, nullable=true, options={"comment"="预览图地址"})
      */
+    #[Groups(['order:read'])]
     private $productImg;
 
     /**
@@ -78,7 +73,15 @@ class OrdersDetail
      *
      * @ORM\Column(name="good_desc", type="string", length=255, nullable=true, options={"comment"="sku描述，下单时通过good的values构建"})
      */
+    #[Groups(['order:read', 'comment:read'])]
     private $goodDesc;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Comments", mappedBy="ordersDetail")
+     */
+    #[Groups(['order:read'])]
+    #[ApiProperty(writable: false, readableLink: false)]
+    private ?Comments $comment = null;
 
     /**
      * @var Orders
@@ -99,7 +102,7 @@ class OrdersDetail
      * })
      */
     #[Groups(['order:read','order:write'])]
-    #[ApiProperty(writableLink: false)]
+    #[ApiProperty(readableLink: false, writableLink: false)]
     #[NotBlank]
     private $good;
 
@@ -217,4 +220,11 @@ class OrdersDetail
         return "[".$this->good->getProduct()->getProductName()."(".$this->goodDesc.")".":".$this->productPrice."元"."x".$this->productSize."]";
     }
 
+    /**
+     * @return ?Comments
+     */
+    public function getComment(): ?Comments
+    {
+        return $this->comment;
+    }
 }

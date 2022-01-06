@@ -8,9 +8,9 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\RangeFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Core\Serializer\Filter\GroupFilter;
 use App\Filter\ForceQueryFilter;
 use App\Filter\SingleGroupFilter;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -20,27 +20,30 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *
  * @ORM\Table(name="product", indexes={@ORM\Index(name="fk_product_shop_1", columns={"shop_id"}), @ORM\Index(name="fk_product_brand", columns={"brand_id"}), @ORM\Index(name="index_create_time", columns={"create_time"}), @ORM\Index(name="search_product", columns={"product_name", "product_tags"}), @ORM\Index(name="fk_product_category_1", columns={"category_id"})})
  * @ORM\Entity
+ * @ORM\HasLifecycleCallbacks()
  */
 #[ApiResource(
     collectionOperations: ['get'],
-    itemOperations: ['get'],
+    itemOperations: [
+        'get',
+    ],
     attributes: [
         "pagination_items_per_page" => 20
     ],
-    normalizationContext: ['groups'=>['prod:read']]
+    normalizationContext: ['groups' => ['prod:read']]
 )]
 #[ApiFilter(
     OrderFilter::class,
-    properties: ['lowestPrice','deployTime'=>'ASC']
+    properties: ['lowestPrice', 'deployTime' => 'ASC']
 )]
 #[ApiFilter(
     SearchFilter::class,
-    properties: ['productName'=>'partial', 'productTags'=>'word_start', 'category'=>'exact']
+    properties: ['productName' => 'partial', 'productTags' => 'word_start', 'category' => 'exact']
 )]
 #[ApiFilter(RangeFilter::class, properties: ['lowestPrice'])]
-#[ApiFilter(ForceQueryFilter::class, arguments: ['forceWhere' => ['productStatus'=>'deployed']])]
+#[ApiFilter(ForceQueryFilter::class, arguments: ['forceWhere' => ['productStatus' => 'deployed']])]
 #[ApiFilter(SingleGroupFilter::class, arguments: [
-    'whitelist' => ['product:simple']]
+        'whitelist' => ['product:simple']]
 )]
 class Product
 {
@@ -52,7 +55,7 @@ class Product
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read', 'product:simple','car:read','coll:read'])]
     private $productId;
 
     /**
@@ -60,7 +63,7 @@ class Product
      *
      * @ORM\Column(name="product_name", type="string", length=40, nullable=true, options={"comment"="商品名"})
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read', 'product:simple','car:read','order:read','coll:read'])]
     private $productName;
 
     /**
@@ -68,22 +71,17 @@ class Product
      *
      * @ORM\Column(name="product_desc", type="string", length=100, nullable=true, options={"comment"="商品描述"})
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read', 'product:simple','coll:read'])]
     private $productDesc;
 
-    /**
-     * @var string|null
-     *
-     * @ORM\Column(name="product_pic", type="string", length=500, nullable=true, options={"comment"="商品图册地址，逗号分隔，最多五个"})
-     */
-    private $productPic;
+
 
     /**
      * @var string|null
      *
      * @ORM\Column(name="preview_img", type="string", length=150, nullable=true, options={"comment"="预览图地址"})
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read', 'product:simple','car:read','order:read','coll:read'])]
     private $previewImg;
 
     /**
@@ -106,13 +104,13 @@ class Product
      *
      * @ORM\Column(name="deploy_time", type="datetime", nullable=true, options={"comment"="上架时间"})
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read', 'product:simple'])]
     private $deployTime;
 
     /**
      * @var string|null
      *
-     * @ORM\Column(name="intro_page", type="string", length=255, nullable=true)
+     * @ORM\Column(name="intro_page", type="text", nullable=true)
      */
     #[Groups(['prod:read'])]
     private $introPage;
@@ -122,15 +120,15 @@ class Product
      *
      * @ORM\Column(name="lowest_price", type="decimal", precision=10, scale=2, nullable=true)
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read', 'product:simple', 'coll:read'])]
     private $lowestPrice;
 
     /**
-     * @var string
+     * @var ?string
      *
      * @ORM\Column(name="product_tags", type="string", length=150, nullable=false, options={"comment"="逗号分隔"})
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read', 'product:simple'])]
     private $productTags;
 
     /**
@@ -141,7 +139,7 @@ class Product
      *   @ORM\JoinColumn(name="brand_id", referencedColumnName="brand_id")
      * })
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read', 'product:simple'])]
     #[ApiProperty(readableLink: true)]
     private $brand;
 
@@ -153,7 +151,7 @@ class Product
      *   @ORM\JoinColumn(name="category_id", referencedColumnName="category_id")
      * })
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read', 'product:simple'])]
     private $category;
 
     /**
@@ -164,7 +162,7 @@ class Product
      *   @ORM\JoinColumn(name="shop_id", referencedColumnName="shop_id")
      * })
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read', 'product:simple','car:read','coll:read'])]
     #[ApiProperty(readableLink: true)]
     private $shop;
 
@@ -178,7 +176,7 @@ class Product
      *     cascade={"persist"}
      * )
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read', 'car:read'])]
     #[ApiProperty(readableLink: true)]
     private $propKeys;
 
@@ -220,18 +218,6 @@ class Product
         return $this;
     }
 
-    public function getProductPic(): ?string
-    {
-        return $this->productPic;
-    }
-
-    public function setProductPic(?string $productPic): self
-    {
-        $this->productPic = $productPic;
-
-        return $this;
-    }
-
     public function getPreviewImg(): ?string
     {
         return $this->previewImg;
@@ -252,18 +238,6 @@ class Product
     public function setProductStatus(?string $productStatus): self
     {
         $this->productStatus = $productStatus;
-
-        return $this;
-    }
-
-    public function getDeleted(): ?bool
-    {
-        return $this->deleted;
-    }
-
-    public function setDeleted(?bool $deleted): self
-    {
-        $this->deleted = $deleted;
 
         return $this;
     }
@@ -321,7 +295,7 @@ class Product
         return $this->productTags;
     }
 
-    public function setProductTags(string|array $productTags): self
+    public function setProductTags(string|array|null $productTags): self
     {
         if (is_array($productTags)) {
             $this->productTags = implode(separator: ",", array: $productTags);
@@ -376,7 +350,7 @@ class Product
         return $this->propKeys;
     }
 
-    public function setPropKeys(\Doctrine\Common\Collections\Collection $propKeys): void
+    public function setPropKeys(?\Doctrine\Common\Collections\Collection $propKeys): void
     {
         $this->propKeys = $propKeys;
     }
@@ -398,9 +372,9 @@ class Product
     }
 
     /**
-     * @param \Doctrine\Common\Collections\Collection $goods
+     * @param \Doctrine\Common\Collections\Collection|null $goods
      */
-    public function setGoods(\Doctrine\Common\Collections\Collection $goods): void
+    public function setGoods(?\Doctrine\Common\Collections\Collection $goods): void
     {
         $this->goods = $goods;
     }
@@ -410,5 +384,25 @@ class Product
         return $this->productName;
     }
 
+    /**
+     * @ORM\PrePersist()   //每次在commit前都会执行这个函数，达到自动更新创建时间和更新时间
+     */
+    public function PrePersist(){
+        if($this->getCreateTime()==null){
+            $this->setCreateTime(date_create());
+        }
+        if($this->getProductStatus() === 'deployed') {
+            $this->setDeployTime(date_create());
+        }
+    }
+
+    /**
+     * @ORM\PreFlush()
+     */
+    public function PreFlush() {
+        if($this->getProductStatus() === 'deployed') {
+            $this->setDeployTime(date_create());
+        }
+    }
 
 }

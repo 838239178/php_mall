@@ -14,7 +14,7 @@ framework:
         - wait_pay
         - wait_draw_back
         - wait_express
-        - wait_recieve
+        - wait_receive
         - finished
         - canceled
       transitions:
@@ -23,9 +23,9 @@ framework:
           to: wait_express
         express:
           from: wait_express
-          to: wait_recieve
+          to: wait_receive
         req_drawback:
-          from: [ wait_pay, wait_express, wait_recieve ]
+          from: [ wait_express, wait_receive ]
           to: wait_draw_back
         cancel:
           from: wait_pay
@@ -34,5 +34,5 @@ framework:
           from: wait_draw_back
           to: canceled
         finish:
-          from: wait_recieve
+          from: wait_receive
           to: finished

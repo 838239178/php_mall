@@ -78,16 +78,25 @@ class UserInfo implements UserInterface, PasswordAuthenticatedUserInterface
      *
      * @ORM\Column(name="avatar", type="string", length=255, nullable=true, options={"comment"="头像地址"})
      */
-    #[Groups(['user:read','user:patch'])]
+    #[Groups(['user:read','user:patch','comment:read'])]
     #[NotBlank]
     private $avatar;
+
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Address")
+     * @ORM\JoinColumn(referencedColumnName="address_id", name="def_addr_id")
+     */
+    #[Groups(['user:read','user:patch'])]
+    #[ApiProperty(readableLink: true, writableLink: false)]
+    private ?Address $defaultAddress;
 
     /**
      * @var string|null
      *
      * @ORM\Column(name="nick_name", type="string", length=32, nullable=true, options={"comment"="昵称"})
      */
-    #[Groups(['user:read','user:patch'])]
+    #[Groups(['user:read','user:patch','comment:read'])]
     #[NotBlank]
     private $nickName;
     /**
@@ -220,5 +229,21 @@ class UserInfo implements UserInterface, PasswordAuthenticatedUserInterface
     public function setShop(?Shop $shop): void
     {
         $this->shop = $shop;
+    }
+
+    /**
+     * @return ?Address
+     */
+    public function getDefaultAddress(): ?Address
+    {
+        return $this->defaultAddress;
+    }
+
+    /**
+     * @param ?Address $defaultAddress
+     */
+    public function setDefaultAddress(?Address $defaultAddress): void
+    {
+        $this->defaultAddress = $defaultAddress;
     }
 }

@@ -1,0 +1,20 @@
+kms_froala_editor:
+  language: 'en'
+  imageUploadFolder: "/uploads/images"
+  # Disable CodeMirror inclusion.
+  includeCodeMirror: false
+
+  # Disable Font Awesome inclusion.
+  includeFontAwesome: false
+
+  # Disable all bundle javascripts inclusion (not concerning CodeMirror).
+  # Usage: if you are using Grunt or other and you want to include yourself all scripts.
+  includeJS: true
+
+  # Disable all bundle CSS inclusion (not concerning Font Awesome nor CodeMirror).
+  # Usage: if you are using Grunt or other and you want to include yourself all stylesheets.
+  includeCSS: true
+
+  saveURL: 'api_upload_html'
+
+  saveInterval: 20000000

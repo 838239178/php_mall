@@ -3,30 +3,43 @@
 
 namespace App\Util;
 
-use App\Serializer\JsonSerializer;
+use ApiPlatform\Core\JsonLd\Serializer\ItemNormalizer;
+use ApiPlatform\Core\Serializer\AbstractItemNormalizer;
+use App\Strategy\Impl\LowerCamelCaseNamingStrategy;
 use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;
+use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializerBuilder;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class HttpUtils
 {
+    private NormalizerInterface $normalizer;
+
+    public function __construct(NormalizerInterface $normalizer)
+    {
+        $this->normalizer = $normalizer;
+    }
+
     /**
      * @param Request $request HttpFoundation
      * @param string $className A::class
      * @return bool|object if wrappers failed returns false else object instance
      */
-    public static function wrapperRequest(Request $request, string $className): bool|object
+    public function wrapperRequest(Request $request, string $className): bool|object
     {
         return self::wrapperDict($request->request->all(), $className);
     }
 
-    public static function wrapperArray(array $arr, string $elementType): bool|ArrayCollection
+    public function wrapperArray(array $arr, string $elementType): bool|ArrayCollection
     {
         $coll = new ArrayCollection();
         foreach ($arr as $item) {
@@ -43,7 +56,7 @@ class HttpUtils
         return $coll;
     }
 
-    public static function wrapperDict(array $dict, string $className): bool|object
+    public function wrapperDict(array $dict, string $className): bool|object
     {
         try {
             $ref = new ReflectionClass($className);
@@ -78,7 +91,7 @@ class HttpUtils
         return $obj;
     }
 
-    public static function wrapperErrors(ConstraintViolationListInterface $errors): JsonResponse
+    public function wrapperErrors(ConstraintViolationListInterface $errors): JsonResponse
     {
         $data = [
             'success' => false,
@@ -90,7 +103,7 @@ class HttpUtils
         return new JsonResponse($data, Response::HTTP_BAD_REQUEST);
     }
 
-    public static function wrapperFail(string $message, int $responseCode = Response::HTTP_BAD_REQUEST): JsonResponse
+    public function wrapperFail(string $message, int $responseCode = Response::HTTP_BAD_REQUEST): JsonResponse
     {
         return new JsonResponse(data: [
             'success' => false,
@@ -98,15 +111,14 @@ class HttpUtils
         ], status: $responseCode);
     }
 
-    public static function wrapperSuccess($data = [], string $message = "请求成功", int $responseCode = Response::HTTP_OK): JsonResponse
+    public function wrapperSuccess($data = ["message"=>"请求成功"], int $responseCode = Response::HTTP_OK): JsonResponse
     {
+        if (!is_array($data)) {
+            $data = $this->normalizer->normalize($data, "jsonld", []);
+        }
         return new JsonResponse(
-            data: JsonSerializer::getInstance()->serialize([
-                'success' => true,
-                'message' => $message,
-                'data' => $data,
-            ], 'json'),
-            status: $responseCode, json: true
+            data: $data,
+            status: $responseCode,
         );
     }
 }

@@ -4,3 +4,6 @@
 api_login:
   path: /api/login
   methods: ['POST']
+kms_froala_editor:
+  resource: '@KMSFroalaEditorBundle/Resources/config/routing.yml'
+  prefix: /froalaeditor

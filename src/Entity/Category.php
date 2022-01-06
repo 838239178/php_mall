@@ -14,6 +14,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *
  * @ORM\Table(name="category", indexes={@ORM\Index(name="search_category", columns={"category_name", "category_desc"}), @ORM\Index(name="index_create_time", columns={"create_time"})})
  * @ORM\Entity(repositoryClass="App\Repository\CategoryRepository")
+ * @ORM\HasLifecycleCallbacks()
  */
 #[ApiResource(
     collectionOperations: ['get'],
@@ -171,4 +172,12 @@ class Category
         return $this->getCategoryName();
     }
 
+    /**
+     * @ORM\PrePersist()   //每次在commit前都会执行这个函数，达到自动更新创建时间和更新时间
+     */
+    public function PrePersist(){
+        if($this->getCreateTime()==null){
+            $this->setCreateTime(date_create());
+        }
+    }
 }

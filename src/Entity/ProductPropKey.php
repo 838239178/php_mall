@@ -35,7 +35,7 @@ class ProductPropKey
      *
      * @ORM\Column(name="option_values", type="string", length=255, nullable=true, options={"comment"="所有可选值 用逗号分隔的数组"})
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','car:read'])]
     #[ApiProperty(description: "包含可选值的<b>数组</b>")]
     private $optionValues;
 
@@ -57,7 +57,7 @@ class ProductPropKey
      *   @ORM\JoinColumn(name="prop_key_id", referencedColumnName="key_id")
      * })
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read', 'car:read'])]
     #[ApiProperty(readableLink: true)]
     private $propKey;
 

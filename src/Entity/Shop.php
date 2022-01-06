@@ -26,7 +26,7 @@ class Shop
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read','product:simple','car:read'])]
     private $shopId;
 
     /**
@@ -34,7 +34,7 @@ class Shop
      *
      * @ORM\Column(name="shop_icon", type="string", length=100, nullable=true)
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read','product:simple','car:read','order:read'])]
     private $shopIcon;
 
     /**
@@ -42,7 +42,7 @@ class Shop
      *
      * @ORM\Column(name="shop_name", type="string", length=30, nullable=true)
      */
-    #[Groups(['prod:read','product:simple'])]
+    #[Groups(['prod:read','product:simple','car:read','order:read','coll:read'])]
     private $shopName;
 
     /**
@@ -84,6 +84,7 @@ class Shop
     /**
      * @ORM\Column(name="express_price", type="decimal", precision=10, scale=2, nullable=true)
      */
+    #[Groups(['prod:read','car:read'])]
     private float $expressPrice;
 
     /**

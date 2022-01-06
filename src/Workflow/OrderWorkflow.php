@@ -38,7 +38,7 @@ class OrderWorkflow
     }
 
     public function canExpress(Orders $orders): bool {
-        return $orders->getExpressId() != null && $this->workflow->can($orders, self::EXPRESS);
+        return $this->workflow->can($orders, self::EXPRESS);
     }
 
     public function canCancel(Orders $orders):bool {
@@ -58,12 +58,21 @@ class OrderWorkflow
     }
 
     public function express(Orders $orders) {
-        $this->workflow->apply($orders,self::EXPRESS);
+        $orders->setOrdersStatus('wait_receive');
         $this->em->flush();
     }
 
     public function cancel(Orders $orders) {
         $this->workflow->apply($orders,self::CANCEL);
+        $this->em->flush();
+    }
+
+    public function cancelDrawBack(Orders $orders) {
+        if($orders->getExpressTime() != null) {
+            $orders->setOrdersStatus('wait_receive');
+        } else {
+            $orders->setOrdersStatus('wait_express');
+        }
         $this->em->flush();
     }
 

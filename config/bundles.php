@@ -20,4 +20,6 @@ return [
     SymfonyBundles\JsonRequestBundle\JsonRequestBundle::class => ['all' => true],
     Lexik\Bundle\JWTAuthenticationBundle\LexikJWTAuthenticationBundle::class => ['all' => true],
     Symfony\WebpackEncoreBundle\WebpackEncoreBundle::class => ['all' => true],
+    KMS\FroalaEditorBundle\KMSFroalaEditorBundle::class => ['all' => true],
+    JMS\SerializerBundle\JMSSerializerBundle::class => ['all' => true],
 ];

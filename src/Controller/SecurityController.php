@@ -33,16 +33,18 @@ class SecurityController extends AbstractController
     private EntityManagerInterface $em;
     private MailerInterface $mailer;
     private UserPasswordHasherInterface $passwordHasher;
+    private HttpUtils $httpUtils;
 
     /**
      * SecurityController constructor.
      * @param EntityManagerInterface $em
      */
-    public function __construct(EntityManagerInterface $em, MailerInterface $mailer, UserPasswordHasherInterface $passwordHasher)
+    public function __construct(EntityManagerInterface $em, MailerInterface $mailer, UserPasswordHasherInterface $passwordHasher, HttpUtils $httpUtils)
     {
         $this->em = $em;
         $this->mailer = $mailer;
         $this->passwordHasher = $passwordHasher;
+        $this->httpUtils = $httpUtils;
     }
 
 
@@ -112,11 +114,11 @@ class SecurityController extends AbstractController
         if (isset($oldPwd) and isset($newPwd)) {
             if ($this->passwordHasher->isPasswordValid($user, $oldPwd)) {
                 $this->passwordHasher->hashPassword($user, $newPwd);
-                return HttpUtils::wrapperSuccess("修改成功");
+                return $this->httpUtils->wrapperSuccess("修改成功");
             }
-            return HttpUtils::wrapperFail("密码错误");
+            return $this->httpUtils->wrapperFail("密码错误");
         }
-        return HttpUtils::wrapperFail("参数不能为空");
+        return $this->httpUtils->wrapperFail("参数不能为空");
     }
 
     #[Route(path: "/api/emailCode/{email}", name: "api_sendEmailCode", methods: ['GET'])]
@@ -151,16 +153,16 @@ class SecurityController extends AbstractController
     #[Route(path: "/api/register", name: "api_register", methods: ['POST'])]
     public function register(Request $request, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator, Session $session): Response
     {
-        $registerInfo = HttpUtils::wrapperRequest($request, RegisterDTO::class);
+        $registerInfo = $this->httpUtils->wrapperRequest($request, RegisterDTO::class);
         if ($registerInfo instanceof RegisterDTO) {
             //validation
             $errors = $validator->validate($registerInfo);
             if (count($errors) > 0) {
-                return HttpUtils::wrapperErrors($errors);
+                return $this->httpUtils->wrapperErrors($errors);
             }
             $code = $session->get($registerInfo->getEmail());
             if ($code != $registerInfo->getEmailCode()) {
-                return HttpUtils::wrapperFail("验证码有误");
+                return $this->httpUtils->wrapperFail("验证码有误");
             }
 
             $userInfo = new UserInfo();

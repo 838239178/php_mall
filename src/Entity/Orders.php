@@ -3,22 +3,19 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
-use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Annotation\ApiSubresource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\RangeFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use App\Consts\Role;
-use App\Controller\OrdersApiController;
 use App\Util\SetterUtil;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use \Doctrine\Common\Collections\Collection as Coll;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
@@ -26,6 +23,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
  *
  * @ORM\Table(name="orders", indexes={@ORM\Index(name="index_express_id", columns={"express_id"}), @ORM\Index(name="index_pay_id", columns={"pay_id"}), @ORM\Index(name="index_create_time", columns={"create_time"}), @ORM\Index(name="index_shop_id", columns={"shop_id"}), @ORM\Index(name="fk_orders_user_info_1", columns={"user_id"})})
  * @ORM\Entity
+ * @ORM\HasLifecycleCallbacks()
  */
 #[ApiResource(
     collectionOperations: [
@@ -37,15 +35,16 @@ use Symfony\Component\Validator\Constraints\NotBlank;
     ],
     attributes: [
         'security'=>"is_granted('".Role::USER."')",
-        "pagination_items_per_page" => 10
+        "pagination_items_per_page" => 5
     ],
     denormalizationContext: ['groups'=>['order:write']],
     normalizationContext: ['groups'=>['order:read']]
 )]
 #[ApiFilter(
     SearchFilter::class,
-    properties: ['ordersStatus'=>'exact']
+    properties: ['ordersStatus'=>'exact', 'keywords'=>'partial']
 )]
+#[ApiFilter(RangeFilter::class, properties: ['createTime'])]
 #[ApiFilter(
     OrderFilter::class,
     properties: ['createTime'=>'DESC']
@@ -73,7 +72,7 @@ class Orders
     private $shop;
 
     /**
-     * @var string|null
+     * @var float|null
      *
      * @ORM\Column(name="total_price", type="decimal", precision=10, scale=2, nullable=true, options={"comment"="订单总价格"})
      */
@@ -129,7 +128,12 @@ class Orders
     private $expressAddress;
 
     /**
-     * @var string|null
+     * @ORM\Column(name="keywords", type="string", length=500)
+     */
+    private string $keywords;
+
+    /**
+     * @var float|null
      *
      * @ORM\Column(name="express_price", type="decimal", precision=10, scale=2, nullable=true, options={"comment"="运费价格"})
      */
@@ -148,7 +152,7 @@ class Orders
     /**
      * @var DateTime|null
      *
-     * @ORM\Column(name="pay_time", type="datetime", nullable=true, options={"comment"="支付时间"})
+     * @ORM\Column(name="pay_time", type="datetime", nullable=true, options={"default"="CURRENT_TIMESTAMP","comment"="支付时间"})
      */
     #[Groups(['order:read','patch:state'])]
     private $payTime;
@@ -156,7 +160,7 @@ class Orders
     /**
      * @var DateTime|null
      *
-     * @ORM\Column(name="finish_time", type="datetime", nullable=true, options={"comment"="收货时间"})
+     * @ORM\Column(name="finish_time", type="datetime", nullable=true, options={"default"="CURRENT_TIMESTAMP","comment"="收货时间"})
      */
     #[Groups(['order:read','patch:state'])]
     private $finishTime;
@@ -164,14 +168,14 @@ class Orders
     /**
      * @var DateTime|null
      *
-     * @ORM\Column(name="express_time", type="datetime", nullable=true, options={"comment"="发货时间"})
+     * @ORM\Column(name="express_time", type="datetime", nullable=true, options={"default"="CURRENT_TIMESTAMP","comment"="发货时间"})
      */
     #[Groups(['order:read','patch:state'])]
     private $expressTime;
 
     /**
      * @var DateTime|null
-     *
+     *C
      * @ORM\Column(name="create_time", type="datetime", nullable=true, options={"default"="CURRENT_TIMESTAMP","comment"="下单时间"})
      */
     #[Groups('order:read')]
@@ -180,10 +184,18 @@ class Orders
     /**
      * @var DateTime|null
      *
-     * @ORM\Column(name="refund_time", type="datetime", nullable=true, options={"comment"="申请退款时间"})
+     * @ORM\Column(name="refund_time", type="datetime", nullable=true, options={"default"="CURRENT_TIMESTAMP","comment"="申请退款时间"})
      */
-    #[Groups(['order:read','patch:state'])]
+    #[Groups(['order:read'])]
     private $refundTime;
+
+    /**
+     * @var DateTime|null
+     *
+     * @ORM\Column(name="cancel_time", type="datetime", nullable=true, options={"default"="CURRENT_TIMESTAMP","comment"="订单取消时间"})
+     */
+    #[Groups(['order:read'])]
+    private $cancelTime;
 
     /**
      * @var UserInfo
@@ -199,10 +211,10 @@ class Orders
     /**
      * @var Coll<OrdersDetail>
      *
-     * @ORM\OneToMany(targetEntity="App\Entity\OrdersDetail", mappedBy="orders", cascade={"persist"})
+     * @ORM\OneToMany(targetEntity="App\Entity\OrdersDetail", mappedBy="orders", cascade={"persist", "remove"})
      */
     #[Groups(['order:write','order:read'])]
-    #[Length(min: 1)]
+    #[Assert\Count(min: 1)]
     private Coll $details;
 
     public function __construct()
@@ -228,12 +240,12 @@ class Orders
         return $this;
     }
 
-    public function getTotalPrice(): ?string
+    public function getTotalPrice(): ?float
     {
         return $this->totalPrice;
     }
 
-    public function setTotalPrice(?string $totalPrice): self
+    public function setTotalPrice(?float $totalPrice): self
     {
         $this->totalPrice = $totalPrice;
 
@@ -300,18 +312,6 @@ class Orders
         return $this;
     }
 
-    public function getDeleted(): ?bool
-    {
-        return $this->deleted;
-    }
-
-    public function setDeleted(?bool $deleted): self
-    {
-        $this->deleted = $deleted;
-
-        return $this;
-    }
-
     public function getExpressAddress(): ?string
     {
         return $this->expressAddress;
@@ -324,12 +324,12 @@ class Orders
         return $this;
     }
 
-    public function getExpressPrice(): ?string
+    public function getExpressPrice(): ?float
     {
         return $this->expressPrice;
     }
 
-    public function setExpressPrice(?string $expressPrice): self
+    public function setExpressPrice(?float $expressPrice): self
     {
         $this->expressPrice = $expressPrice;
 
@@ -442,6 +442,66 @@ class Orders
     public function setOrdersId(int $ordersId): void
     {
         $this->ordersId = $ordersId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getKeywords(): string
+    {
+        return $this->keywords;
+    }
+
+    /**
+     * @param string $keywords
+     */
+    public function setKeywords(string $keywords): void
+    {
+        $this->keywords = $keywords;
+    }
+
+    /**
+     * @ORM\PrePersist()   //每次在commit前都会执行这个函数，达到自动更新创建时间和更新时间
+     */
+    public function PrePersist(){
+        if($this->getCreateTime()==null){
+            $this->setCreateTime(date_create());
+        }
+    }
+
+    /**
+     * @ORM\PreFlush()
+     */
+    public function PreFlush() {
+        if($this->getOrdersStatus() === 'wait_receive') {
+            $this->setExpressTime(date_create());
+            $this->setExpressId("SF999999999999");
+        }
+        if($this->getOrdersStatus() === 'canceled') {
+            $this->setCancelTime(date_create());
+        }
+        if($this->getOrdersStatus() === 'wait_express') {
+            $this->setPayTime(date_create());
+        }
+        if($this->getOrdersStatus() === 'finished') {
+            $this->setFinishTime(date_create());
+        }
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getCancelTime(): ?DateTime
+    {
+        return $this->cancelTime;
+    }
+
+    /**
+     * @param DateTime|null $cancelTime
+     */
+    public function setCancelTime(?DateTime $cancelTime): void
+    {
+        $this->cancelTime = $cancelTime;
     }
 
 }

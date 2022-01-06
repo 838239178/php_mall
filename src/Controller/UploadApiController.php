@@ -17,21 +17,33 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class UploadApiController extends AbstractController
 {
+    private HttpUtils $httpUtils;
+
+    public function __construct(HttpUtils $httpUtils)
+    {
+        $this->httpUtils = $httpUtils;
+    }
+
     #[IsGranted(Role::USER)]
-    #[Route(path: "/api/upload", name: "api_upload", methods: ['POST'])]
+    #[Route(path: "/api/uploads/image", name: "api_upload", methods: ['POST'])]
     public function upload(Request $request, string $projectDir, string $imagePath): Response {
         /** @var UploadedFile $file */
         $file = $request->files->get("file");
         if (is_null($file)) {
-            return HttpUtils::wrapperFail("上传失败");
+            return $this->httpUtils->wrapperFail("上传失败 文件为空");
         }
         // generate a random name for the file but keep the extension
         $filename = uniqid(prefix: 'Image_').".".$file->getClientOriginalExtension();
         $path = $projectDir.'/public'.$imagePath;
         $file->move($path, $filename); // move the file to a path
-        return HttpUtils::wrapperSuccess([
+        return $this->httpUtils->wrapperSuccess([
             'url'=> $request->getSchemeAndHttpHost().$imagePath.$filename,
             'name'=> $filename
         ]);
+    }
+
+    #[Route("/api/upload/html", name: "api_upload_html", methods: ["POST"])]
+    public function uploadHtml(Request $request): Response {
+        return $this->httpUtils->wrapperSuccess();
     }
 }

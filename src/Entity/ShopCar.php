@@ -19,21 +19,22 @@ use Symfony\Component\Validator\Constraints\NotNull;
  *
  * @ORM\Table(name="shop_car", indexes={@ORM\Index(name="index_create_time", columns={"create_time"}), @ORM\Index(name="fk_shop_car_good_1", columns={"good_id"}), @ORM\Index(name="index_shop_id", columns={"shop_id"}), @ORM\Index(name="fk_shop_car_user_info_1", columns={"user_id"})})
  * @ORM\Entity
+ * @ORM\HasLifecycleCallbacks()
  */
 #[ApiResource(
     collectionOperations: ['get', 'post'],
     itemOperations: [
         'get',
         'delete'=>[
-            'security_post_denormalize' =>'previous_object.getUserId() == user.getUserId()'
+            'security_post_denormalize' =>'previous_object.getUser().getUserId() == user.getUserId()'
         ],
         'patch'=>[
-            'denormalizationContext'=>['groups'=>['car:update']],
-            'security_post_denormalize' =>'previous_object.getUserId() == user.getUserId()'
+            'denormalization_context'=>['groups'=>['car:update']],
+            'security_post_denormalize' =>'previous_object.getUser().getUserId() == user.getUserId()'
         ]
     ],
     attributes: [
-        "security"=>"is_grant('".Role::USER.")",
+        "security"=>"is_granted('".Role::USER."')",
         "pagination_items_per_page" => 10
     ],
     denormalizationContext: ['groups'=>['car:write']], normalizationContext: ['groups'=>['car:read']]
@@ -55,12 +56,7 @@ class ShopCar
     #[Groups(['car:read'])]
     private $carId;
 
-    /**
-     * @var int|null
-     *
-     * @ORM\Column(name="shop_id", type="bigint", nullable=true, options={"comment"="卖家id"})
-     */
-    #[Groups(['car:read'])]
+
     private $shopId;
 
     /**
@@ -90,7 +86,7 @@ class ShopCar
      */
     #[Groups(['car:read','car:write', 'car:update'])]
     #[NotBlank]
-    #[ApiProperty(writableLink: false)]
+    #[ApiProperty(readableLink: true, writableLink: false)]
     private $good;
 
     /**
@@ -178,5 +174,14 @@ class ShopCar
         $this->user = $user;
 
         return $this;
+    }
+
+    /**
+     * @ORM\PrePersist()   //每次在commit前都会执行这个函数，达到自动更新创建时间和更新时间
+     */
+    public function PrePersist(){
+        if($this->getCreateTime()==null){
+            $this->setCreateTime(date_create());
+        }
     }
 }

@@ -38,7 +38,7 @@ class Good
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['good:read'])]
+    #[Groups(['good:read','car:read'])]
     private $goodId;
 
     /**
@@ -54,7 +54,7 @@ class Good
      *
      * @ORM\Column(name="sale_price", type="decimal", precision=10, scale=2, nullable=true)
      */
-    #[Groups(['good:read'])]
+    #[Groups(['good:read','car:read','order:read'])]
     private $salePrice;
 
     /**
@@ -62,7 +62,7 @@ class Good
      *
      * @ORM\Column(name="stock", type="integer", nullable=true)
      */
-    #[Groups(['good:read'])]
+    #[Groups(['good:read','car:read'])]
     private $stock;
 
     /**
@@ -73,8 +73,8 @@ class Good
      *   @ORM\JoinColumn(name="product_id", referencedColumnName="product_id")
      * })
      */
-    #[Groups(['good:read'])]
-    #[ApiProperty(readableLink: false)]
+    #[Groups(['good:read','car:read','order:read'])]
+    #[ApiProperty(readableLink: true)]
     private $product;
 
     /**
@@ -82,7 +82,7 @@ class Good
      *
      * @ORM\OneToMany(targetEntity="App\Entity\GoodPropKey", mappedBy="good")
      */
-    #[Groups(['good:read'])]
+    #[Groups(['good:read', 'car:read','order:read'])]
     #[ApiProperty(readableLink: true)]
     private $propKeys;
 

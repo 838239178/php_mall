@@ -56,6 +56,7 @@ class OrderPersister implements ContextAwareDataPersisterInterface
         $data->setExpressAddress($shop->getExpressAddr());
         $data->setExpressName($shop->getExpressName());
         $data->setTotalPrice($this->calculator->calc($data));
+        $keywords = $shop->getShopName();
         /** @var OrdersDetail $detail */
         foreach ($details as $detail) {
             $good = $detail->getGood();
@@ -75,10 +76,13 @@ class OrderPersister implements ContextAwareDataPersisterInterface
                 ->map(fn(GoodPropKey $gp)=> $gp->getValue())
                 ->toArray();
             $detail->setProductName($curProd->getProductName());
+            $detail->setProductImg($curProd->getPreviewImg());
             $detail->setProductPrice($good->getSalePrice());
             $detail->setGoodDesc(join(',', $descArray));
             $detail->setOrders($data);
+            $keywords .= $detail->getGoodDesc().$curProd->getProductName();
         }
+        $data->setKeywords($keywords);
         $this->entityManager->persist($data);
         $this->entityManager->flush();
     }

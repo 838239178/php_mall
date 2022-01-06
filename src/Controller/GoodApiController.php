@@ -14,6 +14,7 @@ use App\Util\HttpUtils;
 use Doctrine\Common\Collections\ArrayCollection;
 use JMS\Serializer\DeserializationContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -23,11 +24,13 @@ class GoodApiController extends AbstractController
 {
     private GoodRepository $goodRepository;
     private ProductRepository $productRepository;
+    private HttpUtils $httpUtils;
 
-    public function __construct(GoodRepository $goodRepository, ProductRepository $productRepository)
+    public function __construct(GoodRepository $goodRepository, ProductRepository $productRepository, HttpUtils $httpUtils)
     {
         $this->goodRepository = $goodRepository;
         $this->productRepository = $productRepository;
+        $this->httpUtils = $httpUtils;
     }
 
 
@@ -37,7 +40,13 @@ class GoodApiController extends AbstractController
         $prod = $this->productRepository->find($pid);
         $goods = $this->goodRepository->findBy(['product'=>$prod]);
         return count($goods) > 0 ?
-            HttpUtils::wrapperSuccess($goods) : HttpUtils::wrapperFail("找不到");
+            $this->httpUtils->wrapperSuccess($goods) : $this->httpUtils->wrapperFail("找不到");
+    }
+
+    #[Route(path: "/{pid}/stock", name: "_getStock", methods: ["GET"])]
+    public function getStock(): Response
+    {
+
     }
 
     #[Route(path: "/getByProp/{pid}", name: "_getByProp", methods: ["POST"])]
@@ -45,15 +54,14 @@ class GoodApiController extends AbstractController
     {
         /** @var array $opts */
         $opts = $request->get("options");
-        $optsCollection = HttpUtils::wrapperArray($opts, GoodDTO::class);
+        $optsCollection = $this->httpUtils->wrapperArray($opts, GoodDTO::class);
         $prod = $this->productRepository->find($pid);
         $res = $this->goodRepository->getGoodByProp($prod, $optsCollection);
         if ($res != null) {
-            $res->setPropKeys(null);
             $res->setProduct(null);
-            return HttpUtils::wrapperSuccess($res);
+            return $this->httpUtils->wrapperSuccess($res);
         } else {
-            return  HttpUtils::wrapperFail("找不到");
+            return  $this->httpUtils->wrapperFail("找不到", Response::HTTP_NOT_FOUND);
         }
     }
 }

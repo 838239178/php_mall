@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use App\Consts\Role;
+use App\Controller\AddressApiController;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -19,10 +20,15 @@ use Symfony\Component\Validator\Constraints\NotBlank;
     itemOperations: [
         'get',
         'patch'=>[
-            'security_post_denormalize' =>'previous_object.getUserId() == user.getUserId()'
+            'security_post_denormalize' =>'previous_object.getUser().getUserId() == user.getUserId()'
+        ],
+        'set_default'=>[
+            'method'=>'GET',
+            'path'=> '/addresses/{addressId}/default',
+            'controller'=>AddressApiController::class
         ],
         'delete'=>[
-            'security_post_denormalize' =>'previous_object.getUserId() == user.getUserId()'
+            'security_post_denormalize' =>'previous_object.getUser().getUserId() == user.getUserId()'
         ]
     ],
     attributes: [
@@ -42,7 +48,7 @@ class Address
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['addr:read'])]
+    #[Groups(['addr:read','user:read'])]
     private $addressId;
 
     /**
@@ -100,16 +106,7 @@ class Address
     private $street;
 
     /**
-     * @var bool|null
-     *
-     * @ORM\Column(name="is_default", type="boolean", nullable=true, options={"comment"="默认地址 1-true"})
-     */
-    #[Groups(['addr:read','addr:write'])]
-    #[NotBlank]
-    private $isDefault = '0';
-
-    /**
-     * @var \UserInfo
+     * @var UserInfo
      *
      * @ORM\ManyToOne(targetEntity="UserInfo")
      * @ORM\JoinColumns({
@@ -117,7 +114,7 @@ class Address
      * })
      */
     #[Groups(['addr:read'])]
-    private $user;
+    private UserInfo $user;
 
     public function getAddressId(): ?string
     {
@@ -192,18 +189,6 @@ class Address
     public function setStreet(?string $street): self
     {
         $this->street = $street;
-
-        return $this;
-    }
-
-    public function getIsDefault(): ?bool
-    {
-        return $this->isDefault;
-    }
-
-    public function setIsDefault(?bool $isDefault): self
-    {
-        $this->isDefault = $isDefault;
 
         return $this;
     }

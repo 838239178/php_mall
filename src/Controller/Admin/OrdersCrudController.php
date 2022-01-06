@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Orders;
+use App\Form\OrdersDetailType;
 use App\Workflow\OrderWorkflow;
 use Doctrine\ORM\EntityManager;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -30,7 +31,7 @@ class OrdersCrudController extends AbstractCrudController
         "待付款" => "wait_pay",
         "待退款" => "wait_draw_back",
         "待发货" => "wait_express",
-        "待收货" => "wait_recieve",
+        "待收货" => "wait_receive",
         "已完成" => "finished",
         "已取消" => "canceled"
     ];
@@ -72,6 +73,13 @@ class OrdersCrudController extends AbstractCrudController
 
         return $this->redirect($urlGenerator->generateUrl());
     }
+    public function noDrawBack(AdminContext $adminContext, AdminUrlGenerator $urlGenerator): Response
+    {
+        $order = $adminContext->getEntity()->getInstance();
+        $this->workflow->cancelDrawBack($order);
+
+        return $this->redirect($urlGenerator->generateUrl());
+    }
 
     public function configureActions(Actions $actions): Actions
     {
@@ -85,18 +93,25 @@ class OrdersCrudController extends AbstractCrudController
             ->displayIf(fn(Orders $orders) => $this->workflow->canDrawBack($orders))
             ->addCssClass('btn-sm btn-warning');
 
+        $noDrawbackAction = Action::new('noDrawBack', '不同意', 'faa fa-times')
+            ->linkToCrudAction('noDrawBack')
+            ->displayIf(fn(Orders $orders) => $this->workflow->canDrawBack($orders))
+            ->addCssClass('btn-sm btn-warning');
+
         return parent::configureActions($actions)
             ->remove(Crud::PAGE_INDEX, Action::NEW)
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
-            ->add(Crud::PAGE_INDEX, $expressAction)
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
-            ->add(Crud::PAGE_INDEX, $drawbackAction);
+            ->add(Crud::PAGE_INDEX, $expressAction)
+            ->add(Crud::PAGE_INDEX, $drawbackAction)
+            ->add(Crud::PAGE_INDEX, $noDrawbackAction);
     }
 
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new("ordersId")->onlyOnIndex(),
+            IdField::new("ordersId")
+                ->onlyOnIndex(),
             TextField::new("ordersStatus","订单状态")
                 ->onlyOnIndex()
                 ->formatValue(function ($value) {
@@ -115,8 +130,10 @@ class OrdersCrudController extends AbstractCrudController
             NumberField::new("totalPrice", "总价")->hideOnForm()
                 ->formatValue(fn($v) => $v . " 元")
                 ->setFormTypeOption("scale", 2),
-            TextField::new("expressName", "快递名称")->hideOnIndex(),
-            TextField::new("expressAddress", "发货日期")->hideOnIndex(),
+            TextField::new("expressName", "快递名称")
+                ->hideOnIndex(),
+            TextField::new("expressAddress", "发货地址")
+                ->hideOnIndex(),
             DateTimeField::new("createTime", "下单日期")->onlyOnDetail(),
             DateTimeField::new("refundTime", "退款日期")->onlyOnDetail(),
             DateTimeField::new("finishTime", "完成日期")->onlyOnDetail(),

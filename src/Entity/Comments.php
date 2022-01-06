@@ -9,6 +9,7 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use App\Consts\Role;
 use App\Extension\NotLimitUser;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -19,26 +20,28 @@ use Symfony\Component\Validator\Constraints\NotBlank;
  *
  * @ORM\Table(name="comments", indexes={@ORM\Index(name="fk_comments_product_1", columns={"product_id"})})
  * @ORM\Entity(repositoryClass="App\Repository\CommentsRepository")
+ * @ORM\HasLifecycleCallbacks()
  */
 #[NotLimitUser]
 #[ApiResource(
     collectionOperations: [
         'get',
         'post'=>[
-            'security'=>"is_grant('".Role::USER."')"
+            'security'=>"is_granted('".Role::USER."')",
+            'security_post_denormalize' =>'object.getOrdersDetail().getComment() == null and object.getOrdersDetail().getOrders().getUser().getUserId() == user.getUserId()'
         ]
     ],
     itemOperations: [
         'get',
         'delete'=>[
-            'security'=>"is_grant('".Role::USER."')",
-            'security_post_denormalize' =>'previous_object.getUserId() == user.getUserId()'
+            'security'=>"is_granted('".Role::USER."')",
+            'security_post_denormalize' =>'previous_object.getUser().getUserId() == user.getUserId()'
         ]
     ],
     attributes: [
         "pagination_items_per_page" => 20
     ],
-    denormalizationContext: ['groups'=>['write']], normalizationContext: ['groups'=>['read']]
+    denormalizationContext: ['groups'=>['comment:write']], normalizationContext: ['groups'=>['comment:read']]
 )]
 #[ApiFilter(
     SearchFilter::class,
@@ -59,26 +62,18 @@ class Comments
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['read'])]
+    #[Groups(['comment:read'])]
     private $commentsId;
 
     /**
      * @var Comments|null
      *
      * @ORM\ManyToOne(targetEntity="App\Entity\Comments", inversedBy="children")
-     * @ORM\JoinColumn(referencedColumnName="comments_id", name="reply_cid")
+     * @ORM\JoinColumn(referencedColumnName="comments_id", name="reply_cid", nullable=true)
      */
-    #[Groups(['read','write'])]
+    #[Groups(['read','comment:write'])]
     #[ApiProperty(readableLink: false, writableLink: false)]
     private $parent;
-
-    /**
-     * @var string|null
-     *
-     * @ORM\Column(name="good_desc", type="string", nullable=false, options={"comment"="购买的sku型号"})
-     */
-    #[Groups(['read'])]
-    private $goodDesc;
 
     /**
      * @var UserInfo|null
@@ -86,7 +81,8 @@ class Comments
      * @ORM\ManyToOne(targetEntity="App\Entity\UserInfo", cascade={"remove"})
      * @ORM\JoinColumn(name="user_id", referencedColumnName="user_id", nullable=false)
      */
-    #[Groups(['read'])]
+    #[Groups(['comment:read'])]
+    #[ApiProperty(readableLink: true, writableLink: false)]
     private $user;
 
     /**
@@ -94,7 +90,7 @@ class Comments
      *
      * @ORM\Column(name="content", type="string", nullable=false)
      */
-    #[Groups(['read','write'])]
+    #[Groups(['comment:read','comment:write'])]
     #[NotBlank]
     private string $content;
 
@@ -103,19 +99,20 @@ class Comments
      *
      * @ORM\Column(name="create_time", type="datetime", nullable=true, options={"default"="CURRENT_TIMESTAMP","comment"="收藏时间"})
      */
-    #[Groups(['read'])]
+    #[Groups(['comment:read'])]
     private $createTime;
 
     /**
      * @var Product
      *
-     * @ORM\ManyToOne(targetEntity="Product", cascade={"remove"})
+     * @ORM\ManyToOne(targetEntity="Product")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="product_id", referencedColumnName="product_id", nullable=false)
      * })
      */
-    #[Groups(['read','write'])]
+    #[Groups(['comment:read','comment:write'])]
     #[NotBlank]
+    #[ApiProperty(readableLink: false, writableLink: false)]
     private $product;
 
     /**
@@ -123,8 +120,19 @@ class Comments
      *
      * @ORM\OneToMany(targetEntity="App\Entity\Comments", mappedBy="parent", cascade={"remove"})
      */
-    #[Groups(['read','write'])]
+    #[Groups(['comment:read'])]
+    #[ApiProperty(writable: false, readableLink: true)]
     private \Doctrine\Common\Collections\Collection $children;
+
+    /**
+     * @var OrdersDetail
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\OrdersDetail")
+     * @ORM\JoinColumn(referencedColumnName="detail_id", name="detail_id", nullable=false)
+     */
+    #[Groups(['comment:read','comment:write'])]
+    #[ApiProperty(readableLink: true, writableLink: false)]
+    private OrdersDetail $ordersDetail;
 
     public function getCommentsId(): ?string
     {
@@ -143,14 +151,14 @@ class Comments
         return $this;
     }
 
-    public function getUserId(): ?string
+    public function getUser(): ?UserInfo
     {
-        return $this->userId;
+        return $this->user;
     }
 
-    public function setUserId(?string $userId): self
+    public function setUser(?UserInfo $userId): self
     {
-        $this->userId = $userId;
+        $this->user = $userId;
 
         return $this;
     }
@@ -213,5 +221,46 @@ class Comments
     public function setContent(string $content): void
     {
         $this->content = $content;
+    }
+
+    /**
+     * @ORM\PrePersist()   //每次在commit前都会执行这个函数，达到自动更新创建时间和更新时间
+     */
+    public function PrePersist(){
+        if($this->getCreateTime()==null){
+            $this->setCreateTime(date_create());
+        }
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getCreateTime(): ?DateTime
+    {
+        return $this->createTime;
+    }
+
+    /**
+     * @param DateTime|null $createTime
+     */
+    public function setCreateTime(?DateTime $createTime): void
+    {
+        $this->createTime = $createTime;
+    }
+
+    /**
+     * @return OrdersDetail
+     */
+    public function getOrdersDetail(): OrdersDetail
+    {
+        return $this->ordersDetail;
+    }
+
+    /**
+     * @param OrdersDetail $ordersDetail
+     */
+    public function setOrdersDetail(OrdersDetail $ordersDetail): void
+    {
+        $this->ordersDetail = $ordersDetail;
     }
 }

@@ -6,6 +6,7 @@ use App\Entity\Brand;
 use App\Entity\Category;
 use App\Entity\Product;
 use App\Form\ProductPropKeyType;
+use App\Form\RichTextEditField;
 use App\Repository\BrandRepository;
 use App\Repository\CategoryRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -40,6 +41,12 @@ class ProductCrudController extends AbstractCrudController
     {
         $this->brandRepo = $brandRepo;
         $this->categoryRepo = $categoryRepo;
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return parent::configureCrud($crud)
+            ->addFormTheme("@KMSFroalaEditor/Form/froala_widget.html.twig");
     }
 
     public function configureActions(Actions $actions): Actions
@@ -95,7 +102,7 @@ class ProductCrudController extends AbstractCrudController
                 ->setFormTypeOption('entry_type', ProductPropKeyType::class),
             DateTimeField::new('createTime')->onlyOnIndex(),
             DateTimeField::new("deployTime")->onlyOnIndex(),
-            TextEditorField::new("introPage", "介绍")
+            RichTextEditField::new("introPage", "介绍")
                 ->hideOnIndex()
         ];
     }

@@ -28,7 +28,7 @@ class PropKey
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['read','prod:read'])]
+    #[Groups(['read','prod:read','car:read'])]
     private $keyId;
 
     /**
@@ -46,7 +46,7 @@ class PropKey
      *
      * @ORM\Column(name="key_name", type="string", length=32, nullable=true)
      */
-    #[Groups(['read','good:read', 'prod:read'])]
+    #[Groups(['read','good:read', 'prod:read', 'car:read'])]
     private $keyName = '';
 
     /**

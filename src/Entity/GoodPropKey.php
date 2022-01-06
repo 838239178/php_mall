@@ -36,7 +36,7 @@ class GoodPropKey
      *
      * @ORM\Column(name="value", type="string", length=20, nullable=false, options={"comment"="对应的值，来自[product_prop_key]option_values"})
      */
-    #[Groups(['read','good:read'])]
+    #[Groups(['read','good:read', 'car:read','order:read'])]
     private $value;
 
     /**

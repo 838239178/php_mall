@@ -28,6 +28,9 @@ services:
     App\Persister\OrderPersister:
         arguments:
             $calculator: '@App\Strategy\Impl\NoCouponStrategy'
+    'App\Util\HttpUtils':
+        arguments:
+            $normalizer: '@api_platform.jsonld.normalizer.item'
     acme_api.event.authentication_success_listener:
         class: App\EventSubscriber\JwtEventSubscriber
         tags:

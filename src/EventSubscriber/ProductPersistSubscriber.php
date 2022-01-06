@@ -2,6 +2,7 @@
 
 namespace App\EventSubscriber;
 
+use ApiPlatform\Core\EventListener\EventPriorities;
 use App\Entity\Product;
 use App\Entity\ProductPropKey;
 use App\Entity\UserInfo;
@@ -11,6 +12,9 @@ use JetBrains\PhpStorm\Pure;
 use KaiGrassnick\SnowflakeBundle\Generator\SnowflakeGenerator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpKernel\Event\KernelEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Security;
 
 class ProductPersistSubscriber implements EventSubscriberInterface
@@ -42,10 +46,15 @@ class ProductPersistSubscriber implements EventSubscriberInterface
         }
     }
 
+    public function preReadProduct(RequestEvent $event) {
+
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
             AbstractLifecycleEvent::class => 'beforeModifyProduct',
+            KernelEvents::REQUEST => ['preReadProduct', EventPriorities::PRE_READ]
         ];
     }
 }
