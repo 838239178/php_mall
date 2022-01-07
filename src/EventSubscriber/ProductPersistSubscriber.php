@@ -37,7 +37,6 @@ class ProductPersistSubscriber implements EventSubscriberInterface
             if ($product->getProductStatus() == "deployed") {
                 $product->setDeployTime(new DateTime());
             }
-            $this->logger->info("init product prop keys and shop");
             /** @var UserInfo $user */
             $user = $this->security->getUser();
             $product->setShop($user->getShop());
@@ -46,15 +45,10 @@ class ProductPersistSubscriber implements EventSubscriberInterface
         }
     }
 
-    public function preReadProduct(RequestEvent $event) {
-
-    }
-
     public static function getSubscribedEvents(): array
     {
         return [
             AbstractLifecycleEvent::class => 'beforeModifyProduct',
-            KernelEvents::REQUEST => ['preReadProduct', EventPriorities::PRE_READ]
         ];
     }
 }
