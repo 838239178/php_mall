@@ -38,7 +38,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 )]
 #[ApiFilter(
     SearchFilter::class,
-    properties: ['productName' => 'partial', 'productTags' => 'word_start', 'category' => 'exact']
+    properties: ['productName' => 'partial', 'productTags' => 'word_start', 'category' => 'exact', 'brand'=>'exact']
 )]
 #[ApiFilter(RangeFilter::class, properties: ['lowestPrice'])]
 #[ApiFilter(ForceQueryFilter::class, arguments: ['forceWhere' => ['productStatus' => 'deployed']])]

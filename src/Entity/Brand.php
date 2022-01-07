@@ -31,7 +31,7 @@ class Brand
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['read','product:simple'])]
+    #[Groups(['read','product:simple','prod:read'])]
     private $brandId;
 
     /**
@@ -39,7 +39,7 @@ class Brand
      *
      * @ORM\Column(name="brand_name", type="string", length=32, nullable=true, options={"comment"="品牌英文名称"})
      */
-    #[Groups(['read','product:simple'])]
+    #[Groups(['read','product:simple','prod:read'])]
     private $brandName;
 
     /**
