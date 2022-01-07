@@ -16,29 +16,35 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
 
 #[IsGranted(Role::ADMIN)]
 class DashboardController extends AbstractDashboardController
 {
 
     private string $frontend;
+    private JWTTokenManagerInterface $tokenManager;
 
-    public function __construct(string $frontend)
+    public function __construct(string $frontend, JWTTokenManagerInterface $tokenManager)
     {
         $this->frontend = $frontend;
+        $this->tokenManager = $tokenManager;
     }
 
     #[Route('/admin', name: 'admin_dashboard')]
     public function index(): Response
     {
+        $user = $this->getUser();
         return $this->render(
             view: "admin/custom-dashboard.html.twig",
             parameters: [
                 'my_own_data'=>[],
-                'front_path'=>$this->frontend
+                'front_path'=>$this->frontend,
+                'token'=>$this->tokenManager->createFromPayload($user, ['exp'=> time() + 300])
             ]
         );
     }

@@ -29,6 +29,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Flex\Response;
 
@@ -37,17 +38,19 @@ class ProductCrudController extends AbstractCrudController
     private BrandRepository $brandRepo;
     private CategoryRepository $categoryRepo;
     private string $frontend;
+    private JWTTokenManagerInterface $JWTTokenManager;
 
     /**
      * ProductCrudController constructor.
      * @param BrandRepository $brandRepo
      * @param CategoryRepository $categoryRepo
      */
-    public function __construct(BrandRepository $brandRepo, CategoryRepository $categoryRepo, string $frontend)
+    public function __construct(BrandRepository $brandRepo, CategoryRepository $categoryRepo, string $frontend, JWTTokenManagerInterface $JWTTokenManager)
     {
         $this->brandRepo = $brandRepo;
         $this->categoryRepo = $categoryRepo;
         $this->frontend = $frontend;
+        $this->JWTTokenManager = $JWTTokenManager;
     }
 
     public function configureCrud(Crud $crud): Crud
@@ -60,7 +63,8 @@ class ProductCrudController extends AbstractCrudController
     {
         /** @var Product $product */
         $product = $adminContext->getEntity()->getInstance();
-        return $this->redirect($this->frontend."/charts?productId=".$product->getProductId());
+        $tempToken = $this->JWTTokenManager->createFromPayload($adminContext->getUser(), ['exp' => time() + 300]);
+        return $this->redirect($this->frontend."/charts?productId=".$product->getProductId()."&token=$tempToken");
     }
 
     public function configureActions(Actions $actions): Actions

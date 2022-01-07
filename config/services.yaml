@@ -32,6 +32,9 @@ services:
     'App\Util\HttpUtils':
         arguments:
             $normalizer: '@api_platform.jsonld.normalizer.item'
+    'App\Controller\Admin\DashboardController':
+        arguments:
+            $tokenManager: '@lexik_jwt_authentication.jwt_manager'
     acme_api.event.authentication_success_listener:
         class: App\EventSubscriber\JwtEventSubscriber
         tags:
