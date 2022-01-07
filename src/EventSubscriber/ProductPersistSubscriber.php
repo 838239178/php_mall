@@ -8,6 +8,8 @@ use App\Entity\ProductPropKey;
 use App\Entity\UserInfo;
 use DateTime;
 use EasyCorp\Bundle\EasyAdminBundle\Event\AbstractLifecycleEvent;
+use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
+use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityUpdatedEvent;
 use JetBrains\PhpStorm\Pure;
 use KaiGrassnick\SnowflakeBundle\Generator\SnowflakeGenerator;
 use Psr\Log\LoggerInterface;
@@ -48,7 +50,8 @@ class ProductPersistSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            AbstractLifecycleEvent::class => 'beforeModifyProduct',
+            BeforeEntityPersistedEvent::class => 'beforeModifyProduct',
+            BeforeEntityUpdatedEvent::class => 'beforeModifyProduct',
         ];
     }
 }
