@@ -23,13 +23,22 @@ use Symfony\Component\Routing\Annotation\Route;
 #[IsGranted(Role::ADMIN)]
 class DashboardController extends AbstractDashboardController
 {
+
+    private string $frontend;
+
+    public function __construct(string $frontend)
+    {
+        $this->frontend = $frontend;
+    }
+
     #[Route('/admin', name: 'admin_dashboard')]
     public function index(): Response
     {
         return $this->render(
             view: "admin/custom-dashboard.html.twig",
             parameters: [
-                'my_own_data'=>[]
+                'my_own_data'=>[],
+                'front_path'=>$this->frontend
             ]
         );
     }

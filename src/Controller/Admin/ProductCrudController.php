@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Brand;
 use App\Entity\Category;
+use App\Entity\Orders;
 use App\Entity\Product;
 use App\Form\ProductPropKeyType;
 use App\Form\RichTextEditField;
@@ -13,6 +14,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
@@ -26,21 +28,26 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Flex\Response;
 
 class ProductCrudController extends AbstractCrudController
 {
     private BrandRepository $brandRepo;
     private CategoryRepository $categoryRepo;
+    private string $frontend;
 
     /**
      * ProductCrudController constructor.
      * @param BrandRepository $brandRepo
      * @param CategoryRepository $categoryRepo
      */
-    public function __construct(BrandRepository $brandRepo, CategoryRepository $categoryRepo)
+    public function __construct(BrandRepository $brandRepo, CategoryRepository $categoryRepo, string $frontend)
     {
         $this->brandRepo = $brandRepo;
         $this->categoryRepo = $categoryRepo;
+        $this->frontend = $frontend;
     }
 
     public function configureCrud(Crud $crud): Crud
@@ -49,9 +56,20 @@ class ProductCrudController extends AbstractCrudController
             ->addFormTheme("@KMSFroalaEditor/Form/froala_widget.html.twig");
     }
 
+    public function showChart(AdminContext $adminContext, AdminUrlGenerator $urlGenerator): RedirectResponse
+    {
+        /** @var Product $product */
+        $product = $adminContext->getEntity()->getInstance();
+        return $this->redirect($this->frontend."/charts?productId=".$product->getProductId());
+    }
+
     public function configureActions(Actions $actions): Actions
     {
+        $showChart = Action::new('showChart', '报表')
+            ->linkToCrudAction('showChart')
+            ->addCssClass('btn-sm');
         return parent::configureActions($actions)
+            ->add(Crud::PAGE_INDEX, $showChart)
             ->add(Crud::PAGE_INDEX, Action::DETAIL);
     }
 
