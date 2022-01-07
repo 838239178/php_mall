@@ -55,15 +55,19 @@ class GoodPersistSubscriber implements EventSubscriberInterface
                     $item->setGood($good);
                 }
                 $key = $item->getKey();
-                /** @var ProductPropKey $findPk */
-                $findPk = $product->getPropKeys()
-                    ->filter(fn(ProductPropKey $pk)=> $pk->getPropKey()->getKeyId() === $key->getKeyId())
-                    ->first();
-                if ($findPk != null) {
-                    $opt = $findPk->getOptionValues();
+                if ($key != null) {
+                    $opt = $key->getOptionValues();
                     //stored if not exits this value
-                    if(!str_contains($opt, $item->getValue())) {
-                        $findPk->setOptionValues($opt . "," . $item->getValue());
+                    $isExist = false;
+                    foreach ($opt as $value) {
+                        if ($value === $item->getValue()) {
+                            $isExist = true;
+                            break;
+                        }
+                    }
+                    if(!$isExist) {
+                        $opt[] = $item->getValue();
+                        $key->setOptionValues($opt);
                     }
                 }
             }

@@ -50,6 +50,11 @@ class OrdersCrudController extends AbstractCrudController
         return Orders::class;
     }
 
+    public function configureCrud(Crud $crud): Crud
+    {
+        return parent::configureCrud($crud)->showEntityActionsInlined();
+    }
+
     public function configureFilters(Filters $filters): Filters
     {
         return $filters

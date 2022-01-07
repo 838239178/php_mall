@@ -63,7 +63,8 @@ class OrderWorkflow
     }
 
     public function cancel(Orders $orders) {
-        $this->workflow->apply($orders,self::CANCEL);
+        $orders->setOrdersStatus("canceled");
+//        $this->workflow->apply($orders,self::CANCEL);
         $this->em->flush();
     }
 

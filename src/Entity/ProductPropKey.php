@@ -31,18 +31,18 @@ class ProductPropKey
     private $id;
 
     /**
-     * @var string|null
+     * @var array|null
      *
-     * @ORM\Column(name="option_values", type="string", length=255, nullable=true, options={"comment"="所有可选值 用逗号分隔的数组"})
+     * @ORM\Column(name="option_values", type="json", nullable=true, options={"comment"="所有可选值 用逗号分隔的数组"})
      */
     #[Groups(['prod:read','car:read'])]
     #[ApiProperty(description: "包含可选值的<b>数组</b>")]
-    private $optionValues;
+    private ?array $optionValues;
 
     /**
      * @var Product
      *
-     * @ORM\ManyToOne(targetEntity="Product")
+     * @ORM\ManyToOne(targetEntity="Product", inversedBy="propKeys")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="product_id", referencedColumnName="product_id")
      * })
@@ -57,7 +57,7 @@ class ProductPropKey
      *   @ORM\JoinColumn(name="prop_key_id", referencedColumnName="key_id")
      * })
      */
-    #[Groups(['prod:read', 'car:read'])]
+    #[Groups(['prod:read', 'car:read','good:read'])]
     #[ApiProperty(readableLink: true)]
     private $propKey;
 
@@ -66,13 +66,13 @@ class ProductPropKey
         return $this->id;
     }
 
-    public function getOptionValues(): string
+    public function getOptionValues(): ?array
     {
-        if ($this->optionValues == null) return "";
+        if ($this->optionValues == null) return [];
         return $this->optionValues;
     }
 
-    public function setOptionValues(?string $optionValues): self
+    public function setOptionValues(?array $optionValues): self
     {
         $this->optionValues = $optionValues;
 
@@ -105,7 +105,7 @@ class ProductPropKey
 
     public function __toString(): string
     {
-        return "[".$this->propKey->getKeyName().":".$this->optionValues."]";
+        return "[".$this->propKey->getKeyName().":".join(",",$this->optionValues)."]";
     }
 
 }

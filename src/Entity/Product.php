@@ -172,8 +172,7 @@ class Product
      * @ORM\OneToMany(
      *     targetEntity="App\Entity\ProductPropKey",
      *     mappedBy="product",
-     *     fetch="EXTRA_LAZY",
-     *     cascade={"persist"}
+     *     cascade={"persist","remove"},
      * )
      */
     #[Groups(['prod:read', 'car:read'])]

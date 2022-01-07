@@ -123,7 +123,7 @@ class ProductCrudController extends AbstractCrudController
                 ->setFormTypeOption('by_reference',false)
                 ->setFormTypeOption('entry_type', ProductPropKeyType::class),
             DateTimeField::new('createTime')->onlyOnIndex(),
-            DateTimeField::new("deployTime")->onlyOnIndex(),
+            DateTimeField::new("deployTime")->onlyOnDetail(),
             RichTextEditField::new("introPage", "介绍")
                 ->hideOnIndex()
         ];

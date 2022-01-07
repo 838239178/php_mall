@@ -94,8 +94,8 @@ class OrdersApiController extends AbstractController
         return $this->httpUtils->wrapperSuccess();
     }
 
-    #[Route(path: '/{id}/receive', name: '_receive', methods: ['PATCH'])]
-    public function receive(int $id): Response
+    #[Route(path: '/{id}/finish', name: '_finish', methods: ['PATCH'])]
+    public function finishOrder(int $id): Response
     {
         /** @var UserInfo $userInfo */
         $userInfo = $this->security->getUser();

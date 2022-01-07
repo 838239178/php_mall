@@ -38,7 +38,7 @@ class GoodRepository extends ServiceEntityRepository
                     /** @var GoodPropKey $item */
                     $item = $g->getPropKeys()->get($idx);
                     return $values->filter(
-                            fn(GoodDTO $dto) => $dto->getPropKeyId() == $item->getKey()->getKeyId() && $dto->getValue() == $item->getValue()
+                            fn(GoodDTO $dto) => $dto->getPropKeyId() == $item->getKey()->getId() && $dto->getValue() == $item->getValue()
                         )->count() > 0;
                 }
             );

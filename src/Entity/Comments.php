@@ -127,7 +127,7 @@ class Comments
     /**
      * @var OrdersDetail
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\OrdersDetail")
+     * @ORM\OneToOne(targetEntity="App\Entity\OrdersDetail", mappedBy="comment")
      * @ORM\JoinColumn(referencedColumnName="detail_id", name="detail_id", nullable=false)
      */
     #[Groups(['comment:read','comment:write'])]

@@ -479,6 +479,9 @@ class Orders
         }
         if($this->getOrdersStatus() === 'canceled') {
             $this->setCancelTime(date_create());
+            if ($this->getPayTime() != null) {
+                $this->setRefundTime(date_create());
+            }
         }
         if($this->getOrdersStatus() === 'wait_express') {
             $this->setPayTime(date_create());

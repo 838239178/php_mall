@@ -71,7 +71,7 @@ class Category
     /**
      * @var Category|null
      *
-     * @ORM\ManyToOne(targetEntity="App\Entity\Category")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Category", inversedBy="children")
      * @ORM\JoinColumn(name="parent_cid",referencedColumnName="category_id")
      */
     #[Groups(['read'])]

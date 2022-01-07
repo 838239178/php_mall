@@ -44,29 +44,13 @@ class GoodPropKeyType extends AbstractType
         if ($product == null) {
             return ['请先选择商品'=>null];
         }
-        $keys = $product->getPropKeys()->map(fn(ProductPropKey $item)=> $item->getPropKey());
+        $keys = $product->getPropKeys();
         $choices = [];
+        /** @var ProductPropKey $item */
         foreach ($keys as $item) {
-            $choices[$item->getKeyName()] = $item;
+            $choices[$item->getPropKey()->getKeyName()] = $item;
         }
         return $choices;
-    }
-
-    #[Deprecated]
-    private function getValues(callable $productProvider, PropKey $propKey): array {
-        /** @var Product $product */
-        $product = call_user_func($productProvider);
-        if ($product == null) {
-            return ['请先选择商品'=>null];
-        }
-        $values = explode(",", $product->getPropKeys()
-            ->filter(fn(ProductPropKey $pk)=> $pk->getPropKey()->getKeyId() == $propKey->getKeyId())
-            ->first()->getOptionValues());
-        $mapValues = [];
-        foreach ($values as $value) {
-            $mapValues[$value] = $value;
-        }
-        return $mapValues;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options)

@@ -42,7 +42,7 @@ class GoodPropKey
     /**
      * @var Good
      *
-     * @ORM\ManyToOne(targetEntity="Good")
+     * @ORM\ManyToOne(targetEntity="Good", inversedBy="propKeys")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="good_id", referencedColumnName="good_id")
      * })
@@ -52,16 +52,16 @@ class GoodPropKey
     private $good;
 
     /**
-     * @var PropKey
+     * @var ProductPropKey|null
      *
-     * @ORM\ManyToOne(targetEntity="PropKey")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ProductPropKey", cascade={"persist"})
      * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="key_id", referencedColumnName="key_id")
+     *   @ORM\JoinColumn(name="key_id", referencedColumnName="id")
      * })
      */
     #[Groups(['read','good:read'])]
     #[ApiProperty(readableLink: true)]
-    private ?PropKey $key;
+    private ?ProductPropKey $key;
 
     public function getId(): ?string
     {
@@ -92,12 +92,12 @@ class GoodPropKey
         return $this;
     }
 
-    public function getKey(): ?PropKey
+    public function getKey(): ?ProductPropKey
     {
         return $this->key;
     }
 
-    public function setKey(?PropKey $key): self
+    public function setKey(?ProductPropKey $key): self
     {
         $this->key = $key;
 
@@ -106,7 +106,7 @@ class GoodPropKey
 
     public function __toString(): string
     {
-        return "[".$this->key->getKeyName().":".$this->value."]";
+        return "[".$this->key->getPropKey()->getKeyName().":".$this->value."]";
     }
 
 }

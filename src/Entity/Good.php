@@ -68,7 +68,7 @@ class Good
     /**
      * @var Product|null
      *
-     * @ORM\ManyToOne(targetEntity="Product",cascade={"remove","persist"})
+     * @ORM\ManyToOne(targetEntity="Product", inversedBy="goods")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="product_id", referencedColumnName="product_id")
      * })
@@ -80,7 +80,7 @@ class Good
     /**
      * @var \Doctrine\Common\Collections\Collection
      *
-     * @ORM\OneToMany(targetEntity="App\Entity\GoodPropKey", mappedBy="good")
+     * @ORM\OneToMany(targetEntity="App\Entity\GoodPropKey", mappedBy="good", cascade={"persist", "remove"})
      */
     #[Groups(['good:read', 'car:read','order:read'])]
     #[ApiProperty(readableLink: true)]
@@ -167,5 +167,10 @@ class Good
         $this->propKeys = $propKeys;
     }
 
+
+    public function __toString(): string
+    {
+        return $this->product."(".join($this->propKeys->map(fn(GoodPropKey $k)=>$k->getValue())->toArray()).")";
+    }
 
 }

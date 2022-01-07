@@ -107,14 +107,17 @@ class SecurityController extends AbstractController
     }
 
     #[Route(path: "/api/password", methods: ['PATCH'])]
-    public function changePwd(Request $request, #[CurrentUser] UserInfo $user): Response
+    public function changePwd(Request $request): Response
     {
         $oldPwd = $request->get("oldPwd");
         $newPwd = $request->get("newPwd");
+        /** @var UserInfo $user */
+        $user = $this->getUser();
         if (isset($oldPwd) and isset($newPwd)) {
             if ($this->passwordHasher->isPasswordValid($user, $oldPwd)) {
-                $this->passwordHasher->hashPassword($user, $newPwd);
-                return $this->httpUtils->wrapperSuccess("修改成功");
+                $user->setPassword($this->passwordHasher->hashPassword($user, $newPwd));
+                $this->em->flush();
+                return $this->httpUtils->wrapperSuccess();
             }
             return $this->httpUtils->wrapperFail("密码错误");
         }
