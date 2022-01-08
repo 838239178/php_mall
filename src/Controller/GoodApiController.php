@@ -61,7 +61,7 @@ class GoodApiController extends AbstractController
             $res->setProduct(null);
             return $this->httpUtils->wrapperSuccess($res);
         } else {
-            return  $this->httpUtils->wrapperFail("找不到", Response::HTTP_NOT_FOUND);
+            return  $this->httpUtils->wrapperFail("NotFoundResource", Response::HTTP_NOT_FOUND);
         }
     }
 }

@@ -27,7 +27,7 @@ class ProductPropKey
      * @ORM\GeneratedValue(strategy="CUSTOM")
      * @ORM\CustomIdGenerator(class="KaiGrassnick\DoctrineSnowflakeBundle\Generator\SnowflakeGenerator")
      */
-    #[Groups(['prod:read'])]
+    #[Groups(['prod:read','car:read'])]
     private $id;
 
     /**
