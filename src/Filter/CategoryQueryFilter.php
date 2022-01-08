@@ -6,7 +6,6 @@ namespace App\Filter;
 
 
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\AbstractContextAwareFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\FilterInterface;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
@@ -29,9 +28,7 @@ class CategoryQueryFilter extends AbstractContextAwareFilter
         $queryBuilder
             ->leftJoin($association, "c2", Join::WITH, "c2.categoryId = $aliasedField" )
             ->leftJoin($association, "c3", Join::WITH, "c2.parent = c3.categoryId" )
-            ->andWhere("$aliasedField = $valueParameter")
-            ->orWhere("c2 = $valueParameter")
-            ->orWhere("c3 = $valueParameter")
+            ->andwhere("$aliasedField = $valueParameter or c2 = $valueParameter or c3 = $valueParameter")
             ->setParameter($valueParameter, $value);
     }
 
