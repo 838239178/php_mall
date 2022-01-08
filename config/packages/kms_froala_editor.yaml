@@ -1,5 +1,5 @@
 kms_froala_editor:
-  language: 'en'
+  language: 'zh_cn'
   imageUploadFolder: "/uploads/images"
   # Disable CodeMirror inclusion.
   includeCodeMirror: false
@@ -17,4 +17,4 @@ kms_froala_editor:
 
   saveURL: 'api_upload_html'
 
-  saveInterval: 20000000
+  saveInterval: 0
