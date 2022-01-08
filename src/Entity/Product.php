@@ -8,6 +8,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\RangeFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use App\Filter\CategoryQueryFilter;
 use App\Filter\ForceQueryFilter;
 use App\Filter\SingleGroupFilter;
 use DateTime;
@@ -38,8 +39,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
 )]
 #[ApiFilter(
     SearchFilter::class,
-    properties: ['productName' => 'partial', 'productTags' => 'word_start', 'category' => 'exact', 'brand'=>'exact']
+    properties: ['productName' => 'partial', 'productTags' => 'word_start', 'brand'=>'exact']
 )]
+#[ApiFilter(CategoryQueryFilter::class)]
 #[ApiFilter(RangeFilter::class, properties: ['lowestPrice'])]
 #[ApiFilter(ForceQueryFilter::class, arguments: ['forceWhere' => ['productStatus' => 'deployed']])]
 #[ApiFilter(SingleGroupFilter::class, arguments: [

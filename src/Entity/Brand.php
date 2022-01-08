@@ -3,8 +3,10 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use App\Filter\CategoryQueryFilter;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -20,7 +22,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
     denormalizationContext: ['groups'=>['']],
     normalizationContext: ['groups'=>['read']]
 )]
-#[ApiFilter(SearchFilter::class, properties: ['brandName'=>'partial', 'category'=>'exact'])]
+#[ApiFilter(SearchFilter::class, properties: ['brandName'=>'partial'])]
+#[ApiFilter(CategoryQueryFilter::class)]
 class Brand
 {
     /**
@@ -66,7 +69,7 @@ class Brand
      *     @ORM\JoinColumn(name="category_id",referencedColumnName="category_id")
      * })
      */
-    #[Groups(['read'])]
+    #[ApiProperty(readable: false)]
     private $category;
 
     public function getBrandId(): ?string

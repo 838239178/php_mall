@@ -77,7 +77,7 @@ class OrdersDetail
     private $goodDesc;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Comments", mappedBy="ordersDetail")
+     * @ORM\OneToOne(targetEntity="App\Entity\Comments", inversedBy="ordersDetail")
      */
     #[Groups(['order:read'])]
     #[ApiProperty(writable: false, readableLink: false)]
