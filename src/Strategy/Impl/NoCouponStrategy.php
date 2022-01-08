@@ -16,7 +16,7 @@ class NoCouponStrategy implements OrderCalcStrategy
         /** @var OrdersDetail $detail */
         foreach ($orders->getDetails() as $detail) {
             $good = $detail->getGood();
-            $total += $good->getSalePrice();
+            $total += $good->getSalePrice() * $detail->getProductSize();
         }
         return $total + $orders->getExpressPrice();
     }

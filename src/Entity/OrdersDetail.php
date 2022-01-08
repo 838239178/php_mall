@@ -96,7 +96,7 @@ class OrdersDetail
     /**
      * @var Good
      *
-     * @ORM\ManyToOne(targetEntity="Good", cascade={"refresh"})
+     * @ORM\ManyToOne(targetEntity="Good", cascade={"persist"})
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="good_id", referencedColumnName="good_id")
      * })

@@ -22,6 +22,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use EasyCorp\Bundle\EasyAdminBundle\Router\CrudUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
 
 class OrdersCrudController extends AbstractCrudController
@@ -67,23 +68,21 @@ class OrdersCrudController extends AbstractCrudController
     {
         $order = $adminContext->getEntity()->getInstance();
         $this->workflow->express($order);
-
-        return $this->redirect($urlGenerator->generateUrl());
+        return $this->redirect($urlGenerator->setAction(Action::INDEX)->generateUrl());
     }
 
-    public function drawback(AdminContext $adminContext, AdminUrlGenerator $urlGenerator): Response
+    public function drawback(AdminContext $adminContext, AdminUrlGenerator $urlGenerator):Response
     {
         $order = $adminContext->getEntity()->getInstance();
-        $this->workflow->cancel($order);
+        $this->workflow->drawback($order);
 
-        return $this->redirect($urlGenerator->generateUrl());
+        return $this->redirect($urlGenerator->setAction(Action::INDEX)->generateUrl());
     }
     public function noDrawBack(AdminContext $adminContext, AdminUrlGenerator $urlGenerator): Response
     {
         $order = $adminContext->getEntity()->getInstance();
         $this->workflow->cancelDrawBack($order);
-
-        return $this->redirect($urlGenerator->generateUrl());
+        return $this->redirect($urlGenerator->setAction(Action::INDEX)->generateUrl());
     }
 
     public function configureActions(Actions $actions): Actions

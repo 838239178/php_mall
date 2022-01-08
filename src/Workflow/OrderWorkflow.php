@@ -5,6 +5,7 @@ namespace App\Workflow;
 
 
 use App\Entity\Orders;
+use App\Entity\OrdersDetail;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\OptimisticLockException;
@@ -58,13 +59,25 @@ class OrderWorkflow
     }
 
     public function express(Orders $orders) {
-        $orders->setOrdersStatus('wait_receive');
+//        $orders->setOrdersStatus('wait_receive');
+        $this->workflow->apply($orders,self::EXPRESS);
+        $this->em->flush();
+    }
+
+    public function drawback(Orders $orders) {
+        $this->workflow->apply($orders, self::DRAWBACK);
         $this->em->flush();
     }
 
     public function cancel(Orders $orders) {
-        $orders->setOrdersStatus("canceled");
-//        $this->workflow->apply($orders,self::CANCEL);
+//        $orders->setOrdersStatus("canceled");
+        $this->workflow->apply($orders,self::CANCEL);
+        //rollback stock
+        /** @var OrdersDetail $detail */
+        foreach ($orders->getDetails() as $detail) {
+            $good = $detail->getGood();
+            $good->setStock($good->getStock()+$detail->getProductSize());
+        }
         $this->em->flush();
     }
 
